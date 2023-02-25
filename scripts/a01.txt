@@ -18,11 +18,6 @@ tmin 	0
 tmax 	2/3
 fps  	30
 
-drawRays 35
-drawCircles
-drawFocus
-focusRadius 100
-
 	#-------------------------------------------------------------------------
 	# Une source ponctuelle
 	#-------------------------------------------------------------------------
@@ -30,3 +25,8 @@ focusRadius 100
 wave	
 	x 1500
 	y 500
+
+	drawRays 35
+	drawCircles
+	drawFocus
+	focusRadius 100

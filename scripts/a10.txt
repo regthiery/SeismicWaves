@@ -10,23 +10,24 @@
 	#-------------------------------------------------------------------------
 
 xmin 	0
-xmax 	3000
+xmax 	5000
 ymin 	0
-ymax	1000
+ymax	4000
 
 tmin 	0
 tmax 	2/3
 fps  	30
 
 drawRays 35
-drawCircles
-drawFocus
-focusRadius 100
+# drawCircles
+# drawFocus
+# focusRadius 100
 
 	#-------------------------------------------------------------------------
 	# Une source ponctuelle
 	#-------------------------------------------------------------------------
 
 wave	
-	x 1500
-	y 500
+	x 2500
+	y 1000
+	linear

@@ -2,6 +2,8 @@
 #
 # Script de démonstration pour SeismicWaves
 #
+#		9 sources espacées de 100 mètres
+#
 #=====================================================================================
 
 
@@ -9,24 +11,52 @@
 	# Les limites du profil sismique
 	#-------------------------------------------------------------------------
 
+nx 4000
+ny 4000
+
 xmin 	0
-xmax 	3000
+xmax 	200000
 ymin 	0
-ymax	1000
+ymax	200000
 
 tmin 	0
-tmax 	2/3
-fps  	30
+tmax  40
+fps  	1
 
-drawRays 35
-drawCircles
 drawFocus
-focusRadius 100
+focusRadius 2e3
+
+# drawCircles
+# drawRays 60
+
+# randomPhase
+vrupture	6000
+transient
+colorMap
+attenuation 1e-5
 
 	#-------------------------------------------------------------------------
-	# Une source ponctuelle
+	# Une source linéaire
 	#-------------------------------------------------------------------------
 
-wave	
-	x 1500
-	y 500
+discreteLinear
+	x 45e3
+	y 150e3
+	length 90e3
+	nsource 20
+	alpha 110
+	v 6000
+	f 1
+# 	progressive 1
+
+discreteLinear
+	x 110e3
+	y 90e3
+	length 90e3
+	nsource 20
+	alpha -20
+	v 6000
+	f 1	
+	progressive 1
+	
+

@@ -2,6 +2,8 @@
 #
 # Script de démonstration pour SeismicWaves
 #
+#		9 sources espacées de 500 mètres avec des déphasages aléatoires
+#
 #=====================================================================================
 
 
@@ -10,23 +12,58 @@
 	#-------------------------------------------------------------------------
 
 xmin 	0
-xmax 	3000
+xmax 	5000
 ymin 	0
-ymax	1000
+ymax	4000
 
 tmin 	0
 tmax 	2/3
 fps  	30
 
-drawRays 35
-drawCircles
 drawFocus
 focusRadius 100
+drawCircles
+
+randomPhase
 
 	#-------------------------------------------------------------------------
 	# Une source ponctuelle
 	#-------------------------------------------------------------------------
 
 wave	
+	x 1000
+	y 1000
+
+wave	
+	x 2000
+	y 1000
+
+wave	
+	x 3000
+	y 1000
+
+wave	
+	x 4000
+	y 1000
+
+wave	
+	x 500
+	y 1000
+
+wave	
 	x 1500
-	y 500
+	y 1000
+	
+wave	
+	x 2500
+	y 1000
+	
+wave	
+	x 3500
+	y 1000
+	
+wave	
+	x 4500
+	y 1000
+	
+
