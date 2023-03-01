@@ -49,7 +49,7 @@ class Wave:
         self.focusRadius = scene.focusRadius        # Initialise le rayon du point focal
         self.dashCounter = 0                        # Initialise un compteur pour les pointillés des rays sismiques
         self.isHidden = False                       # Initialise un booléen qui indique si l'onde est cachée ou non.
-        self.isDrawClippedArea=True                 # Initialise un booléen qui indique si la zone de clipping est dessinée ou non.
+        self.isDrawClippedArea=False                # Initialise un booléen qui indique si la zone de clipping est dessinée ou non.
         self.delayTime = 0                          # Initialise le temps de retard de l'onde
         self.deltaT = 0                             # Initialise le temps de retard de l'onde
         self.sourceWave = None                      # Initialise la source de l'onde source à "None".
@@ -57,6 +57,7 @@ class Wave:
         self.isMovableFocus = False                 # Initialise un booléen qui indique si le point focal se déplace ou non.
         self.isAttenuating = False
         self.attenuationFactor = 0
+        self.isReflected = False
         
         if scene.randomPhase:
             phase = random.uniform (0, 360)
@@ -173,7 +174,7 @@ class Wave:
         
         
     def drawClippedArea(self):  
-        if self.isReflectedWave and self.isDrawClippedArea:
+        if self.isReflected and self.isDrawClippedArea:
             fa = self.mirror[0]
             fb = self.mirror[1] 
             xa = self.scene.xmin
@@ -280,7 +281,12 @@ class Wave:
             alphamin = math.ceil(alphamin)
             alphamax = math.ceil(alphamax)
             for alpha in list(range(alphamin, alphamax)):
-                r = (ti-self.deltaT  -self.phase/(2*math.pi*self.f) ) * self.v + alpha*self.lambda0*beta 
+                if self.isReflected:
+                    phase = -self.phase  
+                else:
+                    phase = self.phase    
+                
+                r = (ti-self.deltaT  -phase/(2*math.pi*self.f) ) * self.v + alpha*self.lambda0*beta 
                 if self.scene.isTransient:
                     dmax = (ti-self.delayTime)*self.v
                     if r>0 and r<= dmax :
@@ -329,7 +335,7 @@ class Wave:
         
         
         if self.isLinear == False:
-            if t>= self.delayTime:
+            if t>= self.delayTime or self.isHidden :
                 D = (X-self.x0)**2 + (Y-self.y0)**2
                 D = np.sqrt(D)
                 if self.isAttenuating:
@@ -343,7 +349,7 @@ class Wave:
                 waveArray = np.zeros_like (X)
                 # waveArray = 0    
         else:
-            if t>= self.delayTime:
+            if t>= self.delayTime or self.isHidden :
                 alpha = np.tan (math.pi*self.linearAngle/180)
                 xa = self.scene.xmin
                 xb = self.scene.xmax

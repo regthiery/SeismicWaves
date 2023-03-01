@@ -261,75 +261,146 @@ class Scene:
         xb = self.xmax
         yb = (self.ymax - self.ymin)*fb + self.ymin
         plt.plot ([xa,xb], [ya,yb], color='black', linewidth=2)
+        
+    #---------------------------------------------------------------------------
+    def projection_point_droite(self,x0, y0, xa1, ya1, xb1, yb1):
+    #---------------------------------------------------------------------------
+        # Calcul du vecteur direction de la droite
+        v = (xb1 - xa1, yb1 - ya1)
+
+        # Calcul du vecteur qui relie le point (x0, y0) à l'un des points sur la droite
+        u = (x0 - xa1, y0 - ya1)
+
+        # Calcul de la projection de u sur v
+        proj = (u[0]*v[0] + u[1]*v[1]) / (v[0]**2 + v[1]**2)
+        proj_v = (proj*v[0], proj*v[1])
+
+        # Calcul des coordonnées de la projection
+        xp = xa1 + proj_v[0]
+        yp = ya1 + proj_v[1]
+
+        return xp, yp
+        
 
     #---------------------------------------------------------------------------
     def addWavesSourcesOnMirror(self):
     #---------------------------------------------------------------------------
-        if len(self.mirrors)>0:
-            mirror=self.mirrors[0]
-            fa=mirror[0]
-            fb=mirror[1]
-            xa1 = self.xmin
-            ya1 = (self.ymax - self.ymin)*fa + self.ymin
-            xb1 = self.xmax
-            yb1 = (self.ymax - self.ymin)*fb + self.ymin
-            alpha1 = (yb1-ya1)/(xb1-xa1)
-            waves = copy.copy(self.waves)
-
-            i = 0
-            for wave0 in waves:
-                
-                wave0.isHidden=True
-                wave1 = Wave(self)
-                wave1.sourceWave = wave0
-                wave1.isDrawSourceRay = True
-                x0 = wave0.x0
-                y0 = wave0.y0
-
-                angle0 = wave0.linearAngle
-                radangle0 = angle0 * math.pi / 180
-                xa0 = self.xmin
-                xb0 = self.xmax
-                ya0 = y0 + math.tan(radangle0)*(xa0-x0) 
-                yb0 = y0 + math.tan(radangle0)*(xb0-x0)
-                
-                alpha0 = (yb0-ya0)/(xb0-xa0)
-                
-                x1 = (x0 + alpha0*y0 + alpha0*alpha1*xa1 - alpha0*ya1) / (1+alpha0*alpha1)
-                y1 = ( alpha1*x0 + alpha0*alpha1*y0 - xa1 * alpha1 + ya1 ) / (1+alpha0*alpha1)
-                
-                radangle1 =  math.atan(alpha1)
-                angle1 = radangle1*180/math.pi
-                
-                d=(x1-xa1)*(x1-xa1)+(y1-ya1)*(y1-ya1)
-                d = np.sqrt(d)
-                wave1.deltaT = -d/wave1.v*math.sin(math.pi/180*(angle0-angle1))
-                
-                wave1.setPosition(x1,y1)
-                
-                wave1.isDrawRays=False
-                wave1.isDrawCircles=True
-                wave1.isDrawClippedArea=False
-                
-                if i==0:
-                    wave1.isReflectedWave=True
-                    wave1.wave0 = wave0
-                    wave1.xa = xa1
-                    wave1.ya = ya1
-                    wave1.xb = xb1
-                    wave1.yb = yb1
-                    wave1.isDrawReflectedRays=False
-                    wave1.isHidden=True
     
-                i+=1
+        if len(self.mirrors) > 0:
+            for mirror in self.mirrors:
+                fa = mirror[0]
+                fb = mirror[1]
+                xa1 = self.xmin
+                ya1 = (self.ymax - self.ymin)*fa + self.ymin
+                xb1 = self.xmax
+                yb1 = (self.ymax - self.ymin)*fb + self.ymin
+                alpha1 = (yb1-ya1)/(xb1-xa1)
+                d = np.sqrt( (xb1-xa1)*(xb1-xa1) + (yb1-ya1)*(yb1-ya1) )
+                
+                for wave in self.waves:
+                    wave.isHidden = True
+                
+                
+                waves = copy.copy(self.waves)
+                ns = 50
+                
+                for wave in waves:
+                    x0 = wave.x0
+                    y0 = wave.y0
+                    for k in range(0,ns):
+                        x1 = xa1 + (xb1-xa1) * k / (ns-1)
+                        y1 = ya1 + (yb1-ya1) * k / (ns-1)
+                        (xp,yp) = self.projection_point_droite (x0, y0, xa1, ya1, xb1, yb1)
+                        dp = np.sqrt ( (xp-x0)*(xp-x0) + (yp-y0)*(yp-y0))
+                        phasep = dp / wave.lambda0
+                        phasep = math.fmod( phasep, 1)
+                        u = ( x1 - xp, y1 - yp )
+                        v = ( x0 - xp, y0 - yp )
+                        cosalpha = ( u[0] * v[0] + u[1] * v[1] ) / ( np.sqrt ( u[0] * u[0] + u[1] * u[1]) * np.sqrt ( v[0] * v[0] + v[1] * v[1]) )
+                        alpha = math.acos(cosalpha)
+                        
+                        d1 = np.sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0))
+                        phase1 = d1 / wave.lambda0
+                        phase1 = math.fmod( phase1, 1)
+                        wave1 = Wave(self)
+                        wave1.setPosition (x1,y1)
+                        wave1.setFrequence (wave.f)
+                        wave1.v = wave.v
+                        wave1.setPhase(-360*phase1)
+                        wave1.isReflected = True
+                        if self.isTransient:
+                            wave1.delayTime = d1 / wave1.v 
+                        
+                        
+                    
+                        
+    
+    
+        # if len(self.mirrors)>0:
+        #     mirror=self.mirrors[0]
+        #     fa=mirror[0]
+        #     fb=mirror[1]
+        #     xa1 = self.xmin
+        #     ya1 = (self.ymax - self.ymin)*fa + self.ymin
+        #     xb1 = self.xmax
+        #     yb1 = (self.ymax - self.ymin)*fb + self.ymin
+        #     alpha1 = (yb1-ya1)/(xb1-xa1)
+        #     waves = copy.copy(self.waves)
 
-            for wave0 in waves:
-                wave1 = Wave(self)
-                wave1.setReflectedWave(wave0,mirror)
-                wave1.isDrawRays=False
-                wave1.isDrawCircles=False
-                wave1.isDrawClippedArea=False
-                wave1.isHidden=True
+        #     i = 0
+        #     for wave0 in waves:
+                
+        #         wave0.isHidden=True
+        #         wave1 = Wave(self)
+        #         wave1.sourceWave = wave0
+        #         wave1.isDrawSourceRay = True
+        #         x0 = wave0.x0
+        #         y0 = wave0.y0
+
+        #         angle0 = wave0.linearAngle
+        #         radangle0 = angle0 * math.pi / 180
+        #         xa0 = self.xmin
+        #         xb0 = self.xmax
+        #         ya0 = y0 + math.tan(radangle0)*(xa0-x0) 
+        #         yb0 = y0 + math.tan(radangle0)*(xb0-x0)
+                
+        #         alpha0 = (yb0-ya0)/(xb0-xa0)
+                
+        #         x1 = (x0 + alpha0*y0 + alpha0*alpha1*xa1 - alpha0*ya1) / (1+alpha0*alpha1)
+        #         y1 = ( alpha1*x0 + alpha0*alpha1*y0 - xa1 * alpha1 + ya1 ) / (1+alpha0*alpha1)
+                
+        #         radangle1 =  math.atan(alpha1)
+        #         angle1 = radangle1*180/math.pi
+                
+        #         d=(x1-xa1)*(x1-xa1)+(y1-ya1)*(y1-ya1)
+        #         d = np.sqrt(d)
+        #         wave1.deltaT = -d/wave1.v*math.sin(math.pi/180*(angle0-angle1))
+                
+        #         wave1.setPosition(x1,y1)
+                
+        #         wave1.isDrawRays=False
+        #         wave1.isDrawCircles=True
+        #         wave1.isDrawClippedArea=False
+                
+        #         if i==0:
+        #             wave1.isReflectedWave=True
+        #             wave1.wave0 = wave0
+        #             wave1.xa = xa1
+        #             wave1.ya = ya1
+        #             wave1.xb = xb1
+        #             wave1.yb = yb1
+        #             wave1.isDrawReflectedRays=False
+        #             wave1.isHidden=True
+    
+        #         i+=1
+
+        #     for wave0 in waves:
+        #         wave1 = Wave(self)
+        #         wave1.setReflectedWave(wave0,mirror)
+        #         wave1.isDrawRays=False
+        #         wave1.isDrawCircles=False
+        #         wave1.isDrawClippedArea=False
+        #         wave1.isHidden=True
 
     #---------------------------------------------------------------------------
     def sumWavesArray (self,waveArray1,waveArray2):
@@ -482,7 +553,9 @@ class Scene:
 
             
 
+    #---------------------------------------------------------------------------
     def parseFile(self, fileName):
+    #---------------------------------------------------------------------------
         with open ("scripts/"+fileName+".txt", "r") as file:
             fileContent = file.read()
 
@@ -531,6 +604,14 @@ class Scene:
                 discreteLinear = {}
                 data["discreteLinears"].append(discreteLinear)
 
+            elif line.startswith("mirror"):
+                if "mirrors" not in data:
+                    data["mirrors"] = []
+                
+                fa = float(tokens[1])
+                fb = float(tokens[2])
+                data["mirrors"].append( [fa,fb] )
+
             elif tokens[0] in ( "x", "y", "v", "f" ):
                 key = tokens[0]
                 if current_section == "wave":
@@ -544,6 +625,9 @@ class Scene:
                 if current_section == "wave":
                     wave["linear"] = True
                     
+            elif tokens[0] in ("clipped"):
+                if current_section == "wave":
+                    waave["clipped"] = True
             elif tokens[0] in ( "drawCircles", "drawFocus" ):
                 key = tokens[0]
                 if current_section == "wave":
@@ -642,6 +726,12 @@ class Scene:
         if "colorMap" in data:
                 self.hasColorMap = True
                 
+
+        if "mirrors" in data:
+            nMirrors = len(data["mirrors"])
+            for k in range(0,nMirrors):
+                mirror = data["mirrors"][k]
+                self.mirrors.append( mirror)
             
         if "waves" in data:
             nWaves = len (data["waves"])
@@ -663,6 +753,7 @@ class Scene:
                 wave.setDrawCircles(True)                    if "drawCircles" in waveData else None
                 wave.setDrawFocus(True)                      if "drawFocus"   in waveData else None
                 wave.focusRadius = waveData["focusRadius"]   if "focusRadius" in waveData else wave.focusRadius
+                wave.isDrawClippedArea = True                if "clipped"     in waveData else wave.isDrawClippedArea
 
         if "discreteLinears" in data:
             nDiscreteLinears = len (data["discreteLinears"])
@@ -703,6 +794,8 @@ class Scene:
                     
         if "attenuation" in data:
             self.setAttenuation ( data["attenuation"] )
+            
+        self.addWavesSourcesOnMirror()    
             
 
         return self

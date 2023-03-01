@@ -2,7 +2,8 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		9 sources espacées de 100 mètres
+#		Simulation du séisme de Gaziantep du 6 février 2023
+#			avec deux failles divergentes
 #
 #=====================================================================================
 
@@ -36,7 +37,7 @@ colorMap
 attenuation 1e-5
 
 	#-------------------------------------------------------------------------
-	# Une source linéaire
+	# Deux sources linéaires
 	#-------------------------------------------------------------------------
 
 discreteLinear
@@ -47,7 +48,7 @@ discreteLinear
 	alpha 110
 	v 6000
 	f 1
-# 	progressive 1
+ 	progressive 1
 
 discreteLinear
 	x 110e3
