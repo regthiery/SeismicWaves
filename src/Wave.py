@@ -82,6 +82,7 @@ class Wave:
         print("\tdeltaT        {}".format(self.deltaT))
         print("\tisAttenuating {}".format(self.isAttenuating))
         print("\tattenuation   {}".format(self.attenuationFactor))
+        print("\thidden        {}".format(self.isHidden))
 
     def setPhase(self,valueInDegree):
         self.phase = valueInDegree * np.pi / 180

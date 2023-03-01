@@ -45,6 +45,7 @@ class Scene:
         self.hasColorMap = False
         self.isAttenuating = False
         self.attenuationFactor = 0
+        self.hidden = False
         
             # data for the source plane
         self.x0 = self.xmin
@@ -438,12 +439,13 @@ class Scene:
                 waveArray0 = wave.createWave (ti)
                 waveArray  = self.sumWavesArray (waveArray, waveArray0)
 
-        if self.hasColorMap:
-            n = len(waves)
-            waveArray[0][0] = n + 0.5
-            waveArray[0][1] = -n - 0.5
+        if len(waveArray) > 0:
+            if self.hasColorMap:
+                n = len(waves)
+                waveArray[0][0] = n + 0.5
+                waveArray[0][1] = -n - 0.5
 
-        image = ax.imshow(waveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
+            image = ax.imshow(waveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
                       cmap="RdBu", origin="lower")
     
         if self.hasColorMap:
@@ -628,7 +630,7 @@ class Scene:
             elif tokens[0] in ("clipped"):
                 if current_section == "wave":
                     waave["clipped"] = True
-            elif tokens[0] in ( "drawCircles", "drawFocus" ):
+            elif tokens[0] in ( "drawCircles", "drawFocus", "hidden" ):
                 key = tokens[0]
                 if current_section == "wave":
                     wave[key] = True
@@ -790,12 +792,15 @@ class Scene:
 
                 if self.progressiveRupture:
                     self.calculateRupturePropagation(wavesList)                         
-                        
+
+        self.addWavesSourcesOnMirror()                            
                     
         if "attenuation" in data:
             self.setAttenuation ( data["attenuation"] )
             
-        self.addWavesSourcesOnMirror()    
+        if "hidden" in data:
+            for wave in self.waves:
+                wave.isHidden = True
             
 
         return self
