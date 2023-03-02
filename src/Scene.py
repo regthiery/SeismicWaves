@@ -46,6 +46,8 @@ class Scene:
         self.isAttenuating = False
         self.attenuationFactor = 0
         self.hidden = False
+        self.onlyFrame = False
+        self.selectedFrame = None
         
             # data for the source plane
         self.x0 = self.xmin
@@ -428,6 +430,7 @@ class Scene:
             i est l'indice de l'image    
         '''
         fig, ax = plt.subplots(figsize=(15,10))
+        plt.axis('equal')
         ax.set_xlim(self.xmin,self.xmax)
         ax.set_ylim(self.ymin,self.ymax)
         ax.invert_yaxis()
@@ -496,11 +499,16 @@ class Scene:
             pool.close()
             pool.join()
             
-        else:    
-            for i in range(self.na):
-                ti = i / (10 * self.fps )
-                print ("{} \t {}".format(i,ti))
-                self.createAnimationFrameImage( ti, i)
+        else:
+            if self.onlyFrame:
+                ti = self.selectedFrame / (10 * self.fps )
+                print ("{} \t {}".format(self.selectedFrame,ti))
+                self.createAnimationFrameImage( ti, self.selectedFrame)
+            else:        
+                for i in range(self.na):
+                    ti = i / (10 * self.fps )
+                    print ("{} \t {}".format(i,ti))
+                    self.createAnimationFrameImage( ti, i)
 
         self.saveAnimation ()
         
@@ -578,7 +586,7 @@ class Scene:
             
             tokens = line.split()
             
-            if tokens[0] in ( "xmin", "xmax", "ymin", "ymax", "parallel", "nx", "ny", "na", "fps" ):
+            if tokens[0] in ( "xmin", "xmax", "ymin", "ymax", "parallel", "nx", "ny", "na", "fps", "frame" ):
                 key = tokens[0]
                 data[key] = int ( tokens[1] )
                 current_section = None
@@ -713,6 +721,9 @@ class Scene:
         if "parallel" in data:
             self.isParallelizing = True    
             self.nProcessors = data["parallel"]
+        if "frame" in data:
+            self.onlyFrame = True    
+            self.selectedFrame = data["frame"]
         if "vrupture" in data:
                 self.vrupture = data["vrupture"]
                 self.progressiveRupture = True

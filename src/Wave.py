@@ -290,6 +290,7 @@ class Wave:
                 r = (ti-self.deltaT  -phase/(2*math.pi*self.f) ) * self.v + alpha*self.lambda0*beta 
                 if self.scene.isTransient:
                     dmax = (ti-self.delayTime)*self.v
+                    dmax *= 1.01
                     if r>0 and r<= dmax :
                         circle = Circle ( (self.x0, self.y0), r, 
                         color='black', facecolor='none', linewidth=1, fill=False,

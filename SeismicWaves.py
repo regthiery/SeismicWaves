@@ -18,18 +18,26 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Caculate seismic  waves')
     parser.add_argument('script',  type=str, help='the script file name')
     parser.add_argument('--parallel', type=int, help='Nombre de processus en parallèle')
+    parser.add_argument('--frame', type=int, help='Image à calculer')
     args = parser.parse_args()
     filename = args.script
     parallel = args.parallel
+    frame = args.frame
     
     print ("Process script {}".format(filename))
 
     scene = Scene()
+
     if parallel != None:
         scene.isParallelizing = True
         scene.nProcessors = parallel
 
     scene.buildFromScript(filename)
+    
+    if frame != None:
+        scene.onlyFrame = True
+        scene.selectedFrame = frame    
+    
     scene.buildAnimation()
 
 
