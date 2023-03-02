@@ -331,6 +331,7 @@ class Scene:
                         wave1.v = wave.v
                         wave1.setPhase(-360*phase1)
                         wave1.isReflected = True
+                        wave1.lifetime = wave.lifetime
                         if self.isTransient:
                             wave1.delayTime = d1 / wave1.v 
                         
@@ -672,6 +673,14 @@ class Scene:
                     discreteLinear[key] = float (tokens[1])
                 else:   
                     data[key] = float (tokens[1])
+            elif tokens[0] in ( "lifetime" ):
+                key = tokens[0]
+                if current_section == "wave":
+                    wave[key] = float (tokens[1])
+                elif current_section == "discreteLinear":
+                    discreteLinear[key] = float (tokens[1])
+                else:   
+                    data[key] = float (tokens[1])
 
 
             elif tokens[0] in ( "length", "progressive" ):
@@ -761,6 +770,7 @@ class Scene:
                 wave.v = waveData["v"]                       if "v"           in waveData else wave.v
                 wave.setFrequence(waveData["f"])             if "f"           in waveData else None
                 wave.setAttenuation(waveData["attenuation"]) if "attenuation" in waveData else None
+                wave.setLifePeriods(waveData["lifetime"])    if "lifetime"    in waveData else None
                 wave.setLinear()                             if "linear"      in waveData else None
                 wave.linearAngle = waveData["alpha"]         if "alpha"       in waveData else wave.linearAngle
                 wave.setPhase(waveData["phase"])             if "phase"       in waveData else None
@@ -797,6 +807,8 @@ class Scene:
                         wave.focusRadius = discreteLinear["focusRadius"]
                     if "attenuation" in discreteLinear:
                         wave.setAttenuation (discreteLinear["attenuation"])
+                    if "lifetime" in discreteLinear:
+                        wave.setLifePeriods (discreteLinear["lifetime"])
                     if self.randomPhase:
                         wave.setPhase  ( random.uniform(0, 360) ) 
 
@@ -818,6 +830,10 @@ class Scene:
         if "clipped" in data:
             for wave in self.waves:
                 wave.isDrawClippedArea = True
+
+        if "lifetime" in data:
+            for wave in self.waves:
+                wave.setLifePeriods (data["lifetime"])
                 
                 
             

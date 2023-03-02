@@ -58,6 +58,8 @@ class Wave:
         self.isAttenuating = False
         self.attenuationFactor = 0
         self.isReflected = False
+        self.lifetime = None
+        self.lifepPeriods = None
         
         if scene.randomPhase:
             phase = random.uniform (0, 360)
@@ -83,9 +85,16 @@ class Wave:
         print("\tisAttenuating {}".format(self.isAttenuating))
         print("\tattenuation   {}".format(self.attenuationFactor))
         print("\thidden        {}".format(self.isHidden))
+        print("\tlifetime      {}".format(self.lifetime))
 
     def setPhase(self,valueInDegree):
         self.phase = valueInDegree * np.pi / 180
+        
+    def setLifePeriods(self, nperiods):
+        self.lifePeriods = nperiods
+        self.lifetime = nperiods * self.T
+        
+            
         
         
     def setFrequence(self,f0):
@@ -292,7 +301,12 @@ class Wave:
                 if self.scene.isTransient:
                     dmax = (ti-self.delayTime)*self.v
                     dmax *= 1.01
-                    if r>0 and r<= dmax :
+                    dmin = 0
+                    if self.lifetime != None:
+                        dmin = (ti-self.delayTime-self.lifetime) * self.v
+                        if dmin<=0:
+                            dmin=0
+                    if r>dmin and r<= dmax :
                         circle = Circle ( (self.x0, self.y0), r, 
                         color='black', facecolor='none', linewidth=1, fill=False,
                         edgecolor='black')
@@ -348,6 +362,11 @@ class Wave:
                     dmax = (t-self.delayTime) * self.v
                     maskD = D > dmax
                     waveArray [maskD] = 0
+                    
+                    if self.lifetime != None:
+                        dmin = (t-self.delayTime -self.lifetime) * self.v
+                        maskA = D < dmin
+                        waveArray [maskA] = 0
             else:
                 waveArray = np.zeros_like (X)
                 # waveArray = 0    
