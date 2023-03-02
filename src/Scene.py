@@ -429,7 +429,7 @@ class Scene:
             ti est le temps
             i est l'indice de l'image    
         '''
-        fig, ax = plt.subplots(figsize=(15,10))
+        fig, ax = plt.subplots(figsize=(15,15))
         plt.axis('equal')
         ax.set_xlim(self.xmin,self.xmax)
         ax.set_ylim(self.ymin,self.ymax)
@@ -637,7 +637,9 @@ class Scene:
                     
             elif tokens[0] in ("clipped"):
                 if current_section == "wave":
-                    waave["clipped"] = True
+                    wave["clipped"] = True
+                else:
+                    data["clipped"] = True
             elif tokens[0] in ( "drawCircles", "drawFocus", "hidden" ):
                 key = tokens[0]
                 if current_section == "wave":
@@ -812,6 +814,12 @@ class Scene:
         if "hidden" in data:
             for wave in self.waves:
                 wave.isHidden = True
+
+        if "clipped" in data:
+            for wave in self.waves:
+                wave.isDrawClippedArea = True
+                
+                
             
 
         return self

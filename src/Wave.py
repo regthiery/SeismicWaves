@@ -176,8 +176,9 @@ class Wave:
         
     def drawClippedArea(self):  
         if self.isReflected and self.isDrawClippedArea:
-            fa = self.mirror[0]
-            fb = self.mirror[1] 
+            mirror = self.scene.mirrors[0]
+            fa = mirror[0]
+            fb = mirror[1] 
             xa = self.scene.xmin
             ya = (self.scene.ymax - self.scene.ymin)*fa + self.scene.ymin
             xb = self.scene.xmax
