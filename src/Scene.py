@@ -517,10 +517,17 @@ class Scene:
     #---------------------------------------------------------------------------
     def buildAnimationTask(self,i):
     #---------------------------------------------------------------------------
-        duplicatedScene = copy.deepcopy(self)
-        ti = i / (10 * self.fps )
-        print (i,ti)
-        duplicatedScene.createAnimationFrameImage( ti, i)
+        if self.onlyFrame:
+            duplicatedScene = copy.deepcopy(self)
+            if i == duplicatedScene.selectedFrame:
+                ti = duplicatedScene.selectedFrame / (10 * self.fps )
+                print ("{} \t {}".format(duplicatedScene.selectedFrame,ti))
+                duplicatedScene.createAnimationFrameImage( ti, i)
+        else:    
+            duplicatedScene = copy.deepcopy(self)
+            ti = i / (10 * self.fps )
+            print (i,ti)
+            duplicatedScene.createAnimationFrameImage( ti, i)
         
         
     #---------------------------------------------------------------------------

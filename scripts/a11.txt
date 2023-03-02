@@ -29,7 +29,7 @@ focusRadius 100
 drawRays 60
 
 	#-------------------------------------------------------------------------
-	# Une source ponctuelle
+	# Une rangée de sources ponctuelles
 	#-------------------------------------------------------------------------
 
 discreteLinear

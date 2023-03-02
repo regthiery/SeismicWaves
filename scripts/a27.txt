@@ -11,13 +11,10 @@
 	# Les limites du profil sismique
 	#-------------------------------------------------------------------------
 
-nx 2000
-ny 2000
-
 xmin 	0
 xmax 	5000
 ymin 	0
-ymax	4000
+ymax	5000
 
 tmin 	0
 tmax 	2/3
@@ -25,20 +22,20 @@ fps  	30
 
 drawFocus
 focusRadius 100
-# drawCircles
-drawRays 60
+drawCircles
+transient
+clipped
 
-	#-------------------------------------------------------------------------
-	# Une source linéaire
-	#-------------------------------------------------------------------------
+frame 124
 
-discreteLinear
+
+mirror 0.5 0.6
+
+wave
 	x 2500
-	y 1000
-	length 4000
-	nsource 20
-	alpha 0
+	y 100	
+	f 20
 	v 6000
-	f 10	
+	lifetime 2
 	
 

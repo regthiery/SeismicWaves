@@ -375,8 +375,8 @@ class Wave:
                 alpha = np.tan (math.pi*self.linearAngle/180)
                 xa = self.scene.xmin
                 xb = self.scene.xmax
-                x0=self.x0
-                y0=self.y0
+                x0 = self.x0
+                y0 = self.y0
                 ya = self.y0 + math.tan(alpha)*(xa-x0) 
                 yb = self.y0 + math.tan(alpha)*(xb-x0)
                     # X1 et Y1 are the projected points of X and Y onto
