@@ -58,8 +58,9 @@ class Wave:
         self.isAttenuating = False
         self.attenuationFactor = 0
         self.isReflected = False
+        self.isRefracted = False
         self.lifetime = None
-        self.lifepPeriods = None
+        self.lifePeriods = None
         
         if scene.randomPhase:
             phase = random.uniform (0, 360)
@@ -86,6 +87,8 @@ class Wave:
         print("\tattenuation   {}".format(self.attenuationFactor))
         print("\thidden        {}".format(self.isHidden))
         print("\tlifetime      {}".format(self.lifetime))
+        print("\treflected     {}".format(self.isReflected))
+        print("\trefracted     {}".format(self.isRefracted))
 
     def setPhase(self,valueInDegree):
         self.phase = valueInDegree * np.pi / 180
@@ -183,19 +186,6 @@ class Wave:
         self.yb=yb
         
         
-    def drawClippedArea(self):  
-        if self.isReflected and self.isDrawClippedArea:
-            mirror = self.scene.mirrors[0]
-            fa = mirror[0]
-            fb = mirror[1] 
-            xa = self.scene.xmin
-            ya = (self.scene.ymax - self.scene.ymin)*fa + self.scene.ymin
-            xb = self.scene.xmax
-            yb = (self.scene.ymax - self.scene.ymin)*fb + self.scene.ymin
-            
-            x = [xa, self.scene.xmin, self.scene.xmax, xb, xa ]
-            y = [ya, self.scene.ymax, self.scene.ymax, yb, ya ]
-            plt.fill(x,y, 'white', alpha=0.9)
             
     def drawReflectedRay(self,f):
         if self.isReflectedWave and self.isDrawReflectedRays:
@@ -285,14 +275,14 @@ class Wave:
         self.nrays = nrays        
 
 
-    def drawCircles(self,ax,ti,beta):
+    def drawCircles(self,ax,ti,beta,clipPath):
         if self.isDrawCircles:
             alphamin = -ti*self.v / self.lambda0 
             alphamax = (self.scene.xmax-self.scene.xmin-ti*self.v)/ self.lambda0 
             alphamin = math.ceil(alphamin)
             alphamax = math.ceil(alphamax)
             for alpha in list(range(alphamin, alphamax)):
-                if self.isReflected:
+                if self.isReflected or self.isRefracted:
                     phase = -self.phase  
                 else:
                     phase = self.phase    
@@ -300,10 +290,11 @@ class Wave:
                 r = (ti-self.deltaT  -phase/(2*math.pi*self.f) ) * self.v + alpha*self.lambda0*beta 
                 if self.scene.isTransient:
                     dmax = (ti-self.delayTime)*self.v
-                    dmax *= 1.01
+                    dmax += 1e-6
                     dmin = 0
                     if self.lifetime != None:
                         dmin = (ti-self.delayTime-self.lifetime) * self.v
+                        dmin -= 1e-6
                         if dmin<=0:
                             dmin=0
                     if r>dmin and r<= dmax :
@@ -311,12 +302,18 @@ class Wave:
                         color='black', facecolor='none', linewidth=1, fill=False,
                         edgecolor='black')
                         ax.add_patch(circle)
+                        if clipPath != None:
+                            circle.set_clip_path (clipPath)
+                    if r > dmax:
+                         break    
                 else:    
                     if r>0:
                         circle = Circle ( (self.x0, self.y0), r, 
                         color='black', facecolor='none', linewidth=1, fill=False,
                         edgecolor='black')
                         ax.add_patch(circle)
+                        if clipPath != None:
+                            circle.set_clip_path (clipPath)
 
 
     def drawFocus (self):

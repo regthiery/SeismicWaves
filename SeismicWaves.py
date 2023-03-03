@@ -43,11 +43,6 @@ if __name__ == '__main__':
 
 
 '''
-
-mirror = [0.2,0.9]
-
-
-            
     
 elif flag==4:    
     mirror = [0.2,0.6]

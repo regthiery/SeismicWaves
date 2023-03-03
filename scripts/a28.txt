@@ -2,7 +2,7 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		9 sources espacées de 100 mètres
+#		Miroir de forme irrégulière
 #
 #=====================================================================================
 
@@ -28,17 +28,22 @@ transient
 
 refracted
 
-# frame 92 
+frame 92 
 
 
-mirror 0.3 0.3
+mirror 
+	point 0 1000
+	point 1000 1200
+	point 1500 1300
+	point 2000 1000
+	point 5000 1300
 
-wave
-	x 2500
-	y 100	
-	f 20
-	v 6000
-	lifetime 2
-	vrefracted 10000
+# wave
+# 	x 2500
+# 	y 100	
+# 	f 20
+# 	v 6000
+# 	lifetime 2
+# 	vrefracted 10000
 	
 

@@ -8,6 +8,7 @@ from moviepy.editor import ImageSequenceClip
 from functools import partial
 import multiprocessing
 import re
+from matplotlib.patches import Polygon
 
 
 from Wave import Wave
@@ -48,6 +49,8 @@ class Scene:
         self.hidden = False
         self.onlyFrame = False
         self.selectedFrame = None
+        self.refracted = False
+        self.clipped = False
         
             # data for the source plane
         self.x0 = self.xmin
@@ -81,9 +84,13 @@ class Scene:
         print ("tmin          {}".format(self.tmin))    
         print ("tmax          {}".format(self.tmax))    
         print ("Draw rays     {}".format(self.isDrawRays))
+        print ("Draw circles  {}".format(self.isDrawCircles))
+        print ("Draw focus    {}".format(self.isDrawFocus))
         print ("n rays        {}".format(self.nrays))
         print ("Parallelizing {}".format(self.isParallelizing))
         print ("Transient     {}".format(self.isTransient))
+        print ("Refracted     {}".format(self.refracted))
+        print ("Clipped       {}".format(self.clipped))
 
         k = 1
         for wave in self.waves:
@@ -108,10 +115,60 @@ class Scene:
     #---------------------------------------------------------------------------
     def saveAnimation(self):
     #---------------------------------------------------------------------------
-        clip = ImageSequenceClip(self.imagesFolderPath, fps=30)
-        filename = self.animationsFolderPath + '/' + self.filename + '.mp4'
-        clip.write_videofile(filename)
         
+        if self.onlyFrame == False:
+            if os.path.exists(self.imagesFolderPath + '/' + ".DS_Store"):
+                os.remove(self.imagesFolderPath + '/' + ".DS_Store")
+            
+            clip = ImageSequenceClip(self.imagesFolderPath, fps=30)
+            filename = self.animationsFolderPath + '/' + self.filename + '.mp4'
+            clip.write_videofile(filename)
+
+    #---------------------------------------------------------------------------
+    def segmentMirrors (self):
+    #---------------------------------------------------------------------------
+        if len(self.mirrors) > 0:
+            ns = 50
+            for mirror in self.mirrors:
+                mirror ["segmented"] = []
+                if "fa" in mirror:
+                    fa = mirror["fa"]
+                    fb = mirror["fb"]
+                    xa1 = self.xmin
+                    ya1 = (self.ymax - self.ymin)*fa + self.ymin
+                    xb1 = self.xmax
+                    yb1 = (self.ymax - self.ymin)*fb + self.ymin
+                    
+                    for k in range(0,ns):
+                        x1 = xa1 + (xb1-xa1) * k / (ns-1)
+                        y1 = ya1 + (yb1-ya1) * k / (ns-1)
+                        mirror["segmented"].append([x1,y1])
+                elif "points" in mirror:
+                    d = 0
+                    points = mirror["points"]
+                    point0 = points[0]
+                    x0 = point0[0]
+                    y0 = point0[1]
+                    for point in mirror["points"]:
+                        x1 = point[0]
+                        y1 = point[1]
+                        d += np.sqrt((x1-x0)*(x1-x0)+(y1-y0))
+                    dseg = d / ns
+                    
+                    fa = points[0][1] / (self.ymax - self.ymin)
+                    fb = points[-1][1] / (self.ymax - self.ymin)
+                    mirror["fa"]=fa
+                    mirror["fb"]=fb
+                    xa1 = self.xmin
+                    ya1 = (self.ymax - self.ymin)*fa + self.ymin
+                    xb1 = self.xmax
+                    yb1 = (self.ymax - self.ymin)*fb + self.ymin
+                    
+                    for k in range(0,ns):
+                        x1 = xa1 + (xb1-xa1) * k / (ns-1)
+                        y1 = ya1 + (yb1-ya1) * k / (ns-1)
+                        mirror["segmented"].append([x1,y1])
+
 
     #---------------------------------------------------------------------------
     def buildDiscreteLinearSource(self, x0, y0, alpha, nsource, length, v, f, phase ):
@@ -229,11 +286,6 @@ class Scene:
         for wave in self.waves:
             wave.setDrawRays(flag,nrays)
     
-    def appendMirror (self,mirror):
-        fa = mirror[0]
-        fb = mirror[1]
-        self.mirrors.append([fa,fb])
-        
     def setSourcePlane(self,x0,y0,length0,angle0):        
         self.x0 = x0
         self.y0 = y0
@@ -291,8 +343,8 @@ class Scene:
     
         if len(self.mirrors) > 0:
             for mirror in self.mirrors:
-                fa = mirror[0]
-                fb = mirror[1]
+                fa = mirror["fa"]
+                fb = mirror["fb"]
                 xa1 = self.xmin
                 ya1 = (self.ymax - self.ymin)*fa + self.ymin
                 xb1 = self.xmax
@@ -310,21 +362,38 @@ class Scene:
                 for wave in waves:
                     x0 = wave.x0
                     y0 = wave.y0
-                    for k in range(0,ns):
-                        x1 = xa1 + (xb1-xa1) * k / (ns-1)
-                        y1 = ya1 + (yb1-ya1) * k / (ns-1)
-                        (xp,yp) = self.projection_point_droite (x0, y0, xa1, ya1, xb1, yb1)
-                        dp = np.sqrt ( (xp-x0)*(xp-x0) + (yp-y0)*(yp-y0))
-                        phasep = dp / wave.lambda0
-                        phasep = math.fmod( phasep, 1)
-                        u = ( x1 - xp, y1 - yp )
-                        v = ( x0 - xp, y0 - yp )
-                        cosalpha = ( u[0] * v[0] + u[1] * v[1] ) / ( np.sqrt ( u[0] * u[0] + u[1] * u[1]) * np.sqrt ( v[0] * v[0] + v[1] * v[1]) )
-                        alpha = math.acos(cosalpha)
+                    segmentationPoints = mirror["segmented"]
+                    for point in segmentationPoints:
+                        x1 = point[0]
+                        y1 = point[1]
+#                     for k in range(0,ns):
+#                         x1 = xa1 + (xb1-xa1) * k / (ns-1)
+#                         y1 = ya1 + (yb1-ya1) * k / (ns-1)
+
+
+                        # (xp,yp) = self.projection_point_droite (x0, y0, xa1, ya1, xb1, yb1)
+                        # dp = np.sqrt ( (xp-x0)*(xp-x0) + (yp-y0)*(yp-y0))
+                        # phasep = dp / wave.lambda0
+                        # phasep = math.fmod( phasep, 1)
+                        # u = ( x1 - xp, y1 - yp )
+                        # v = ( x0 - xp, y0 - yp )
+                        # cosalpha = ( u[0] * v[0] + u[1] * v[1] ) / ( np.sqrt ( u[0] * u[0] + u[1] * u[1]) * np.sqrt ( v[0] * v[0] + v[1] * v[1]) )
+                        # alpha = math.acos(cosalpha)
                         
                         d1 = np.sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0))
                         phase1 = d1 / wave.lambda0
                         phase1 = math.fmod( phase1, 1)
+                        
+                        wave2 = Wave(self)
+                        wave2.setPosition (x1,y1)
+                        wave2.setFrequence (wave.f)
+                        wave2.v = wave.vrefracted
+                        wave2.setPhase(-360*phase1)
+                        wave2.isRefracted = True
+                        wave2.lifetime = wave.lifetime
+                        if self.isTransient:
+                            wave2.delayTime = d1 / wave.v 
+                            
                         wave1 = Wave(self)
                         wave1.setPosition (x1,y1)
                         wave1.setFrequence (wave.f)
@@ -334,6 +403,8 @@ class Scene:
                         wave1.lifetime = wave.lifetime
                         if self.isTransient:
                             wave1.delayTime = d1 / wave1.v 
+                            
+                            
                         
                         
                     
@@ -419,6 +490,31 @@ class Scene:
             sumArray . append (a+b)
     
         return sumArray
+    
+
+    #---------------------------------------------------------------------------
+    def getClipArea(self,flag,ax):  
+    #---------------------------------------------------------------------------
+
+        if len(self.mirrors) > 0:
+            mirror = self.mirrors[0]
+            fa = mirror['fa']
+            fb = mirror['fb'] 
+            xa = self.xmin
+            ya = (self.ymax - self.ymin)*fa + self.ymin
+            xb = self.xmax
+            yb = (self.ymax - self.ymin)*fb + self.ymin
+            
+
+            if flag=='above':
+                x = [xa, self.xmin, self.xmax, xb, xa ]
+                y = [ya, self.ymin, self.ymin, yb, ya ]
+            elif flag=='below':
+                x = [xa, self.xmin, self.xmax, xb, xa ]
+                y = [ya, self.ymax, self.ymax, yb, ya ]
+
+            poly = Polygon ( list(zip(x,y)),transform=ax.transData)
+            return poly
 
         
     #---------------------------------------------------------------------------
@@ -435,22 +531,46 @@ class Scene:
         ax.set_xlim(self.xmin,self.xmax)
         ax.set_ylim(self.ymin,self.ymax)
         ax.invert_yaxis()
+        
+        self.zorder=1
 
         waves = self.waves
-        waveArray = []
+        sourceWaveArray = []
+        reflectedWaveArray = []
+        refractedWaveArray = []
         for wave in waves:
             if wave.isHidden == False:
                 waveArray0 = wave.createWave (ti)
-                waveArray  = self.sumWavesArray (waveArray, waveArray0)
+                if wave.isReflected:
+                    reflectedWaveArray  = self.sumWavesArray (reflectedWaveArray, waveArray0)
+                elif wave.isRefracted:                    
+                    refractedWaveArray  = self.sumWavesArray (refractedWaveArray, waveArray0)
+                else:
+                    sourceWaveArray = self.sumWavesArray (sourceWaveArray, waveArray0)    
 
-        if len(waveArray) > 0:
+
+        if len(sourceWaveArray) > 0:
             if self.hasColorMap:
                 n = len(waves)
-                waveArray[0][0] = n + 0.5
-                waveArray[0][1] = -n - 0.5
+                sourceWaveArray[0][0] = n + 0.5
+                sourceWaveArray[0][1] = -n - 0.5
 
-            image = ax.imshow(waveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
+            image = ax.imshow(sourceWaveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
                       cmap="RdBu", origin="lower")
+
+
+        if len(reflectedWaveArray) > 0:
+            reflectedClipPath = self.getClipArea('above',ax)
+            image = ax.imshow(reflectedWaveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
+                      cmap="RdBu", origin="lower")
+            image.set_clip_path(reflectedClipPath)
+
+        if len(refractedWaveArray) > 0:
+            refractedClipPath = self.getClipArea('below',ax)
+            image = ax.imshow(refractedWaveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
+                      cmap="RdBu", origin="lower")
+            image.set_clip_path(refractedClipPath)
+
     
         if self.hasColorMap:
             cp = ax.get_children()
@@ -460,18 +580,38 @@ class Scene:
     
         for wave in waves:
             if ti >= wave.delayTime:
-                wave.drawRays()
-                wave.drawSourceRay()
-                wave.drawReflectedRays ()
-                wave.drawCircles(ax, ti, 1.0)
-                wave.drawClippedArea()
-                wave.drawFocus()
+                if wave.isRefracted:
+                    wave.drawRays()
+                    wave.drawSourceRay()
+                    wave.drawReflectedRays ()
+                    wave.drawCircles(ax, ti, 1.0, refractedClipPath)
+                    wave.drawFocus()
+        
+        
+        for wave in waves:
+            if ti >= wave.delayTime:
+                if wave.isReflected:
+                    wave.drawRays()
+                    wave.drawSourceRay()
+                    wave.drawReflectedRays ()
+                    poly = self.getClipArea('above',ax)
+                    wave.drawCircles(ax, ti, 1.0, reflectedClipPath)
+                    wave.drawFocus()
+
+        for wave in waves:
+            if ti >= wave.delayTime:
+                if wave.isReflected == False and wave.isRefracted == False :
+                    wave.drawRays()
+                    wave.drawSourceRay()
+                    wave.drawReflectedRays ()
+                    wave.drawCircles(ax, ti, 1.0, None)
+                    wave.drawFocus()
 
 
 
         if len(self.mirrors)>0 :
-            for f in self.mirrors:
-                self.drawLine(f[0], f[1])
+            for mirror in self.mirrors:
+                self.drawLine(mirror['fa'], mirror['fb'])
 
         rx = (self.xmax-self.xmin)*0.2
         ry = (self.ymax-self.ymin)*0.05
@@ -502,12 +642,12 @@ class Scene:
             
         else:
             if self.onlyFrame:
-                ti = self.selectedFrame / (10 * self.fps )
+                ti = self.tmin + self.selectedFrame / (10 * self.fps )
                 print ("{} \t {}".format(self.selectedFrame,ti))
                 self.createAnimationFrameImage( ti, self.selectedFrame)
             else:        
                 for i in range(self.na):
-                    ti = i / (10 * self.fps )
+                    ti = self.tmin + i / (10 * self.fps )
                     print ("{} \t {}".format(i,ti))
                     self.createAnimationFrameImage( ti, i)
 
@@ -520,12 +660,12 @@ class Scene:
         if self.onlyFrame:
             duplicatedScene = copy.deepcopy(self)
             if i == duplicatedScene.selectedFrame:
-                ti = duplicatedScene.selectedFrame / (10 * self.fps )
+                ti = duplicatedScene.tmin + duplicatedScene.selectedFrame / (10 * self.fps )
                 print ("{} \t {}".format(duplicatedScene.selectedFrame,ti))
                 duplicatedScene.createAnimationFrameImage( ti, i)
         else:    
             duplicatedScene = copy.deepcopy(self)
-            ti = i / (10 * self.fps )
+            ti = duplicatedScene.tmin + i / (10 * self.fps )
             print (i,ti)
             duplicatedScene.createAnimationFrameImage( ti, i)
         
@@ -586,9 +726,7 @@ class Scene:
             if index != -1:
                 line = line [:index]
                 line.strip()
-            # if line.startswith("#"):
-            #   # c'est un commentaire dans le script -> ne rien faire
-            #     continue
+
             if line == '':
                 continue
             
@@ -602,19 +740,19 @@ class Scene:
                 key = tokens[0]
                 data[key] = float(eval(tokens[1]))
                 current_section = None
-            elif tokens[0] in ( "randomPhase", "transient", "grid", "colorMap" ):
+            elif tokens[0] in ( "randomPhase", "transient", "grid", "colorMap", "refracted" ):
                 key = tokens[0]
                 data[key] = True
                 current_section = None
             
-            elif line.startswith("wave") :
+            elif tokens [0] == "wave": 
                 if "waves" not in data:
                     data["waves"] = []
                 current_section = "wave"
                 wave = {}
                 data["waves"].append(wave)
 
-            elif line.startswith("discreteLinear"):
+            elif tokens[0] == "discreteLinear" :
                 if "discreteLinears" not in data:
                     data["discreteLinears"] = []
 
@@ -622,13 +760,18 @@ class Scene:
                 discreteLinear = {}
                 data["discreteLinears"].append(discreteLinear)
 
-            elif line.startswith("mirror"):
+            elif tokens[0] == "mirror": 
                 if "mirrors" not in data:
                     data["mirrors"] = []
                 
-                fa = float(tokens[1])
-                fb = float(tokens[2])
-                data["mirrors"].append( [fa,fb] )
+                current_section = "mirror"
+                mirror = {}
+                if len(tokens) == 3:
+                    fa = float(tokens[1])
+                    fb = float(tokens[2])
+                    mirror ["fa"] = fa
+                    mirror ["fb"] = fb
+                data["mirrors"].append(mirror)
 
             elif tokens[0] in ( "x", "y", "v", "f" ):
                 key = tokens[0]
@@ -639,7 +782,7 @@ class Scene:
 
 
 
-            elif line.startswith("linear"):
+            elif tokens[0] == "linear": 
                 if current_section == "wave":
                     wave["linear"] = True
                     
@@ -695,21 +838,33 @@ class Scene:
                 if current_section == "discreteLinear":
                     discreteLinear[key] = float( tokens[1] )
 
+            elif tokens[0] == "point":
+                if current_section == "mirror":
+                    if "points" not in mirror:
+                        mirror["points"] = []
+                    point = [ float(tokens[1]), float(tokens[2]) ]
+                    mirror["points"].append(point)
 
-            elif line.startswith("nsource"):
+            elif tokens[0] == "nsource": 
                 if current_section == "discreteLinear":
-                    discreteLinear["nsource"] = int(line.split()[1])
+                    discreteLinear["nsource"] = int(tokens[1])
 
-            elif line.startswith("alpha"):
+            elif tokens[0] == "alpha": 
                 if current_section == "discreteLinear":
-                    discreteLinear["alpha"] = float(line.split()[1])/180.0*math.pi
+                    discreteLinear["alpha"] = float(tokens[1])/180.0*math.pi
                 elif current_section == "wave":
-                    wave["alpha"] = float(line.split()[1])/180.0*math.pi
-            elif line.startswith("phase"):
+                    wave["alpha"] = float(tokens[1])/180.0*math.pi
+            elif tokens[0] == "phase": 
                 if current_section == "discreteLinear":
-                    discreteLinear["phase"] = float(line.split()[1])
+                    discreteLinear["phase"] = float(tokens[1])
                 elif current_section == "wave":
-                    wave["phase"] = float(line.split()[1])
+                    wave["phase"] = float(tokens[1])
+
+            elif tokens[0] == "vrefracted": 
+                if current_section == "discreteLinear":
+                    discreteLinear["vrefracted"] = float(tokens[1])
+                elif current_section == "wave":
+                    wave["vrefracted"] = float(tokens[1])
                 
         return data
 
@@ -718,13 +873,13 @@ class Scene:
         self.filename=filename
         data = self.parseFile(filename)
         self.buildScene(data)
-        self.displayInfo()
         self.prepare()
+        self.displayInfo()
 
 
     def buildScene(self,data):
         
-        for key in ["xmin", "xmax", "ymin", "ymax", "nx", "ny", "na", "tmin", "tmax"]:
+        for key in ["xmin", "xmax", "ymin", "ymax", "nx", "ny", "na", "tmin", "tmax", "refracted", "clipped"]:
             if key in data:
                 setattr(self, key, data[key])
 
@@ -762,7 +917,7 @@ class Scene:
             nMirrors = len(data["mirrors"])
             for k in range(0,nMirrors):
                 mirror = data["mirrors"][k]
-                self.mirrors.append( mirror)
+                self.mirrors.append(mirror)
             
         if "waves" in data:
             nWaves = len (data["waves"])
@@ -786,6 +941,7 @@ class Scene:
                 wave.setDrawFocus(True)                      if "drawFocus"   in waveData else None
                 wave.focusRadius = waveData["focusRadius"]   if "focusRadius" in waveData else wave.focusRadius
                 wave.isDrawClippedArea = True                if "clipped"     in waveData else wave.isDrawClippedArea
+                wave.vrefracted = waveData["vrefracted"]     if "vrefracted"  in waveData else wave.vrefracted
 
         if "discreteLinears" in data:
             nDiscreteLinears = len (data["discreteLinears"])
@@ -816,8 +972,11 @@ class Scene:
                         wave.setAttenuation (discreteLinear["attenuation"])
                     if "lifetime" in discreteLinear:
                         wave.setLifePeriods (discreteLinear["lifetime"])
+                    if "vrefracted" in discreteLinear:
+                        wave.vrefracted = discreteLinear["vrefracted"]
                     if self.randomPhase:
                         wave.setPhase  ( random.uniform(0, 360) ) 
+                        
 
                 if "progressive" in discreteLinear:
                     self.setProgressiveDephasing(wavesList, discreteLinear["progressive"])
@@ -825,6 +984,7 @@ class Scene:
                 if self.progressiveRupture:
                     self.calculateRupturePropagation(wavesList)                         
 
+        self.segmentMirrors()
         self.addWavesSourcesOnMirror()                            
                     
         if "attenuation" in data:
@@ -834,9 +994,9 @@ class Scene:
             for wave in self.waves:
                 wave.isHidden = True
 
-        if "clipped" in data:
-            for wave in self.waves:
-                wave.isDrawClippedArea = True
+        # if "clipped" in data:
+        #     for wave in self.waves:
+        #         wave.isDrawClippedArea = True
 
         if "lifetime" in data:
             for wave in self.waves:
