@@ -61,6 +61,7 @@ class Wave:
         self.isRefracted = False
         self.lifetime = None
         self.lifePeriods = None
+        self.vrefracted = 7000
         
         if scene.randomPhase:
             phase = random.uniform (0, 360)

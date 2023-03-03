@@ -38,6 +38,10 @@ python3 SeismicWaves.py nom_du_script
 
 3. Les résultats de la simulation seront enregistrés dans le dossier `animations/`.
 
+## Demonstration
+
+Consulter https://youtu.be/2x7rniZIDFE
+
 ## Auteurs
 
 - Régis Thiéry (regthiery@mail.com)
