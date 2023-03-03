@@ -341,7 +341,29 @@ class Scene:
         yp = ya1 + proj_v[1]
 
         return xp, yp
-        
+    
+    #---------------------------------------------------------------------------
+    def drawMirrors(self):
+    #---------------------------------------------------------------------------
+        for mirror in self.mirrors:
+            if "points" in mirror:
+                points = mirror["points"]
+                xm = []
+                ym = []
+                for point in points:
+                    xm.append ( point[0] )
+                    ym.append ( point[1] )
+                plt.plot     
+                    
+            elif "fa" in mirror:
+                fa = mirror["fa"]
+                fb = mirror["fb"]
+                xa = self.xmin
+                ya = (self.ymax - self.ymin)*fa + self.ymin
+                xb = self.xmax
+                yb = (self.ymax - self.ymin)*fb + self.ymin
+                plt.plot ([xa,xb], [ya,yb], color='black', linewidth=2)
+                
 
     #---------------------------------------------------------------------------
     def addWavesSourcesOnMirror(self):
@@ -538,8 +560,6 @@ class Scene:
         ax.set_ylim(self.ymin,self.ymax)
         ax.invert_yaxis()
         
-        self.zorder=1
-
         waves = self.waves
         sourceWaveArray = []
         reflectedWaveArray = []
@@ -614,10 +634,11 @@ class Scene:
                     wave.drawFocus()
 
 
+        self.drawMirrors()
 
-        if len(self.mirrors)>0 :
-            for mirror in self.mirrors:
-                self.drawLine(mirror['fa'], mirror['fb'])
+        # if len(self.mirrors)>0 :
+        #     for mirror in self.mirrors:
+        #         self.drawLine(mirror['fa'], mirror['fb'])
 
         rx = (self.xmax-self.xmin)*0.2
         ry = (self.ymax-self.ymin)*0.05
