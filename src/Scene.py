@@ -106,6 +106,9 @@ class Scene:
     #---------------------------------------------------------------------------
     def eraseImagesFolder(self):
     #---------------------------------------------------------------------------
+        if not os.path.exists(self.imagesFolderPath):
+            os.makedirs(self.imagesFolderPath)
+    
         files = os.listdir(self.imagesFolderPath)
         for file in files:
             filePath = os.path.join(self.imagesFolderPath, file)
@@ -120,6 +123,9 @@ class Scene:
             if os.path.exists(self.imagesFolderPath + '/' + ".DS_Store"):
                 os.remove(self.imagesFolderPath + '/' + ".DS_Store")
             
+            if not os.path.exists(self.animationsFolderPath):
+                os.makedirs(self.animationsFolderPath)
+
             clip = ImageSequenceClip(self.imagesFolderPath, fps=30)
             filename = self.animationsFolderPath + '/' + self.filename + '.mp4'
             clip.write_videofile(filename)
