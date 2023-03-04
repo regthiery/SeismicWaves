@@ -2,7 +2,7 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		10 sources ponctuelles sur une longueur de 2000 m
+#		Une rangée de sources ponctuelles
 #
 #=====================================================================================
 
@@ -30,7 +30,6 @@ focusRadius 100
 # drawRays 60
 
 # randomPhase
-# vrupture	6000
 # transient
 colorMap
 

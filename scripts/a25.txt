@@ -2,7 +2,7 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		9 sources espacées de 100 mètres
+#		Miroir avec source ponctuelle
 #
 #=====================================================================================
 
@@ -26,7 +26,7 @@ drawCircles
 transient
 clipped
 
-frame 106
+# frame 106
 
 
 mirror 0.3 0.4
@@ -36,5 +36,6 @@ wave
 	y 100	
 	f 5
 	v 6000
+	vrefracted 8000
 	
 

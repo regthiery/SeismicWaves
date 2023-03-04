@@ -2,7 +2,7 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		Miroir de forme irrégulière
+#		Miroir de forme irrégulière avec source ponctuelle
 #
 #=====================================================================================
 
@@ -22,13 +22,12 @@ fps  	30
 
 drawFocus
 focusRadius 10
-drawCircles
+# drawCircles
 transient
 # clipped
 
-refracted
 
-frame 92 
+# frame 92 
 
 
 mirror 
@@ -38,12 +37,12 @@ mirror
 	point 2000 1000
 	point 5000 1300
 
-# wave
-# 	x 2500
-# 	y 100	
-# 	f 20
-# 	v 6000
-# 	lifetime 2
-# 	vrefracted 10000
+wave
+	x 2500
+	y 100	
+	f 20
+	v 6000
+	lifetime 2
+	vrefracted 10000
 	
 

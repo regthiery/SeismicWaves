@@ -2,7 +2,8 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		9 sources espacées de 100 mètres
+#	Réflexion d'une source ponctuelle avec un miroir horizontal
+#		On ne dessine que les fronts d'onde circulaires
 #
 #=====================================================================================
 
@@ -14,28 +15,25 @@
 xmin 	0
 xmax 	5000
 ymin 	0
-ymax	4000
+ymax	5000
+equalAxis
 
 tmin 	0
-tmax 	2/3
+tmax 	1
 fps  	30
 
 drawFocus
-focusRadius 100
+focusRadius 20
 drawCircles
 transient
 hidden
-clipped
-
 
 mirror 0.5 0.5
-
 
 wave
 	x 2500
 	y 100	
 	f 5
 	v 6000
-	hidden
 	
 

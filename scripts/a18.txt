@@ -2,7 +2,7 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		9 sources espacées de 100 mètres
+#		Une rangée de sources ponctuelles
 #
 #=====================================================================================
 
@@ -30,12 +30,11 @@ drawCircles
 # drawRays 60
 
 # randomPhase
-# vrupture	6000
 transient
 colorMap
 
 	#-------------------------------------------------------------------------
-	# Une source linéaire
+	# Une rangée de sources ponctuelles
 	#-------------------------------------------------------------------------
 
 discreteLinear
@@ -46,6 +45,9 @@ discreteLinear
 	alpha 0
 	v 6000
 	f 10	
+		# Déphasage de 3.53 périodes entre la première et dernière source
+		# Cela produit un font linéaire orienté de 45° par rapport à 
+		# la rangée de sources ponctuelles
 	progressive 3.53
 	
 

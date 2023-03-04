@@ -2,7 +2,11 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		9 sources espacées de 100 mètres
+#		Une rangée de sources ponctuelles transitoire 
+#			avec grille affichée en arrière-plan et palette de couleurs
+#
+#		Entre le 1er et dernier point de la rangée, il y a un décalge
+#			d'une phase
 #
 #=====================================================================================
 
@@ -30,14 +34,13 @@ focusRadius 100
 # drawRays 60
 
 # randomPhase
-# vrupture	6000
 transient
 colorMap
 
 grid
 
 	#-------------------------------------------------------------------------
-	# Une source linéaire
+	# Une rangée de sources ponctuelles
 	#-------------------------------------------------------------------------
 
 discreteLinear

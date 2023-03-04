@@ -63,12 +63,14 @@ class Wave:
         self.lifePeriods = None
         self.vrefracted = 7000
         
+        self.sourceCircleColor = '#1f77b4'          # bleu
+        self.reflectedCircleColor = '#2ca02c'       # vert
+        self.refractedCircleColor = '#d62728'       # rouge
+        self.circleColor = self.sourceCircleColor
+        
         if scene.randomPhase:
             phase = random.uniform (0, 360)
-            self.setPhase (phase)
-            
-    
-    
+            self.setPhase (phase)    
     
     def displayInfo(self):
         print("\tx0            {}".format(self.x0))
@@ -94,12 +96,19 @@ class Wave:
     def setPhase(self,valueInDegree):
         self.phase = valueInDegree * np.pi / 180
         
+    def setReflected(self):
+        self.isReflected = True
+        self.isRefracted = False
+        self.circleColor = self.reflectedCircleColor
+
+    def setRefracted(self):
+        self.isReflected = False
+        self.isRefracted = True
+        self.circleColor = self.refractedCircleColor
+        
     def setLifePeriods(self, nperiods):
         self.lifePeriods = nperiods
         self.lifetime = nperiods * self.T
-        
-            
-        
         
     def setFrequence(self,f0):
         '''
@@ -276,7 +285,12 @@ class Wave:
         self.nrays = nrays        
 
 
+    #----------------------------------------------------------------
     def drawCircles(self,ax,ti,beta,clipPath):
+    #----------------------------------------------------------------
+        '''
+            Cette fonction dessine les fronts d'onde circulaire
+        '''
         if self.isDrawCircles:
             alphamin = -ti*self.v / self.lambda0 
             alphamax = (self.scene.xmax-self.scene.xmin-ti*self.v)/ self.lambda0 
@@ -300,7 +314,7 @@ class Wave:
                             dmin=0
                     if r>dmin and r<= dmax :
                         circle = Circle ( (self.x0, self.y0), r, 
-                        color='black', facecolor='none', linewidth=1, fill=False,
+                        color=self.circleColor, facecolor='none', linewidth=0.5, fill=False,
                         edgecolor='black')
                         ax.add_patch(circle)
                         if clipPath != None:
@@ -310,7 +324,7 @@ class Wave:
                 else:    
                     if r>0:
                         circle = Circle ( (self.x0, self.y0), r, 
-                        color='black', facecolor='none', linewidth=1, fill=False,
+                        color=self.circleColor, facecolor='none', linewidth=0.5, fill=False,
                         edgecolor='black')
                         ax.add_patch(circle)
                         if clipPath != None:
@@ -334,7 +348,7 @@ class Wave:
             points[10]=points[0]
             plt.fill(points[:,0], points[:,1],'r',zorder=3)
             plt.plot(points[:,0], points[:,1],'black',zorder=4)
-
+            
 
 
     def setLinear(self):

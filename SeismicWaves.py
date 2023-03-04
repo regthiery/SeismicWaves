@@ -38,7 +38,11 @@ if __name__ == '__main__':
         scene.onlyFrame = True
         scene.selectedFrame = frame    
     
-    scene.buildAnimation()
+    try:
+        scene.buildAnimation()
+    except KeyboardInterrupt:
+        print ("Program interrupted. Exiting...")    
+        sys.exit(0)
 
 
 

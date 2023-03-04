@@ -2,7 +2,7 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		9 sources espacées de 100 mètres
+#		Une rangée de sources ponctuelles déphasées
 #
 #=====================================================================================
 
@@ -31,7 +31,7 @@ focusRadius 100
 randomPhase
 
 	#-------------------------------------------------------------------------
-	# Une source linéaire
+	# Une rangée de sources ponctuelles
 	#-------------------------------------------------------------------------
 
 discreteLinear

@@ -2,7 +2,7 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		9 sources espacées de 500 mètres avec des déphasages aléatoires
+#		9 sources espacées de 1000 mètres avec des déphasages aléatoires
 #
 #=====================================================================================
 

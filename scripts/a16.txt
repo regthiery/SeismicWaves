@@ -2,7 +2,9 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		9 sources espacées de 100 mètres
+#		Une rangée de sources ponctuelles avec combinaison des deux options:
+#			progressive 2 : déphasage de 2 périodes entre la 1ère et dernière source
+#			vrupture : vitesse de rupture
 #
 #=====================================================================================
 
@@ -26,18 +28,16 @@ fps  	30
 drawFocus
 focusRadius 100
 
-progressive 1
 grid
 
 # drawCircles
 # drawRays 60
 
 # randomPhase
-# vrupture	6000
 # transient
 
 	#-------------------------------------------------------------------------
-	# Une source linéaire
+	# Une rangée de sources ponctuelles
 	#-------------------------------------------------------------------------
 
 discreteLinear
@@ -48,5 +48,7 @@ discreteLinear
 	alpha 0
 	v 6000
 	f 10	
+	progressive 2
+	vrupture	6000
 	
 

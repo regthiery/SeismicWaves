@@ -2,7 +2,7 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		9 sources espacées de 100 mètres
+#		Source ponctuelle avec miroir
 #
 #=====================================================================================
 
@@ -35,6 +35,7 @@ wave
 	y 100	
 	f 10
 	v 6000
+	vrefracted 8000
 	lifetime 2
 	
 
