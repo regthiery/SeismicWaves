@@ -40,9 +40,12 @@ python3 SeismicWaves.py nom_du_script
 
 ## Demonstration
 
+Image de démonstration produite par le programme: ondes de réflexion et de réfraction produite par l'interaction d'une source
+ponctuelle sur une interface de forme irrégulière.
+
 ![Image de démonstration avec réflexion et réfraction des ondes sur interface à partir d'une source ponctuelle](image.png)
 
-Consulter https://youtu.be/2x7rniZIDFE
+Consulter aussi https://youtu.be/2x7rniZIDFE
 
 ## Auteurs
 
