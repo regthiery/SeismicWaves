@@ -315,21 +315,21 @@ class Scene:
             wave.setDrawFocus(flag)    
             
     #---------------------------------------------------------------------------
-    def calculateProjectionPointOnLine(self,x0, y0, xa1, ya1, xb1, yb1):
+    def calculateProjectionPointOnLine(self,x1, y1, xa, ya, xb, yb):
     #---------------------------------------------------------------------------
         # Calcul du vecteur direction de la droite
-        v = (xb1 - xa1, yb1 - ya1)
+        v = (xb - xa, yb - ya)
 
         # Calcul du vecteur qui relie le point (x0, y0) à l'un des points sur la droite
-        u = (x0 - xa1, y0 - ya1)
+        u = (x1 - xa, y1 - ya)
 
         # Calcul de la projection de u sur v
         proj = (u[0]*v[0] + u[1]*v[1]) / (v[0]**2 + v[1]**2)
         proj_v = (proj*v[0], proj*v[1])
 
         # Calcul des coordonnées de la projection
-        xp = xa1 + proj_v[0]
-        yp = ya1 + proj_v[1]
+        xp = xa + proj_v[0]
+        yp = ya + proj_v[1]
 
         return xp, yp
     
@@ -374,7 +374,7 @@ class Scene:
                 ns = mirror["nsource"] if "nsource" in mirror else self.nsource
                 
                 for wave in waves:
-                    if wave.isReflected == False and wave.isRefracted == False:
+                    if wave.isReflected == False and wave.isRefracted == False :
                         x0 = wave.x0
                         y0 = wave.y0
                         segmentationPoints = mirror["segmented"]
@@ -382,7 +382,27 @@ class Scene:
                             x1 = point[0]
                             y1 = point[1]
                         
-                            d1 = np.sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0))
+                            if wave.isLinear == False:
+                                d1 = np.sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0))
+                            
+                            else: 
+                                alpha = math.tan(wave.linearAngle)
+                                xa = self.xmin
+                                xb = self.xmax
+                                x0 = wave.x0
+                                y0 = wave.y0
+                                ya = self.y0 + alpha*(xa-x0) 
+                                yb = self.y0 + alpha*(xb-x0)
+                                # xp et yp are the projected points of x1 and y1 onto
+                                # the source plane
+                                # (xp,yp) = self.calculateProjectionPointOnLine(x1, y1, xa, ya, xb, yb)
+                                
+                                xp = ( alpha*alpha*x0 - alpha*y0 + x1 + alpha*y1 ) / (1+alpha*alpha)
+                                yp = (-alpha*x0 + y0 + alpha*x1 + alpha*alpha*y1 ) / (1+alpha*alpha)
+                                # d is the distance between (xp,yp) and (x1,y1)
+                                d1=(xp-x1)*(xp-x1)+(yp-y1)*(yp-y1)
+                                d1 = np.sqrt(d1)
+                                       
                             phase1 = d1 / wave.lambda0
                             phase1 = math.fmod( phase1, 1)
                         
@@ -393,6 +413,7 @@ class Scene:
                             wave2.setFrequence (wave.f)
                             wave2.setPhase(-360*phase1)
                             wave2.setRefracted()
+                            wave2.isOnMirror = True
                             wave2.lifetime = wave.lifetime
                             if self.isTransient:
                                 wave2.delayTime = d1 / wave.v 
@@ -405,8 +426,15 @@ class Scene:
                             wave1.setPhase(-360*phase1)
                             wave1.setReflected()
                             wave1.lifetime = wave.lifetime
+                            wave1.isOnMirror = True
                             if self.isTransient:
                                 wave1.delayTime = d1 / wave1.v 
+                                
+                            if wave.isLinear:
+                                wave1.isSourceLinear = True
+                                wave1.xp = xp
+                                wave1.yp = yp    
+                                    
                             
                             
     #---------------------------------------------------------------------------
@@ -425,7 +453,7 @@ class Scene:
 
             i = 0
             for wave0 in waves:
-                if wave0.isReflected == Fase and wave0.isRefracted == False:
+                if wave0.isReflected == False and wave0.isRefracted == False:
                     wave0.isHidden=True
                     wave1 = Wave(self)
                     wave1.sourceWave = wave0
@@ -600,10 +628,8 @@ class Scene:
         max3 = max ( [abs(min0), abs(min1), abs(min2), max0, max1, max2])        
         if self.normalize:    
             norm = Normalize (vmin=-maxn, vmax=maxn)
-            print ("maxn {}", maxn)
         else:    
             norm = Normalize (vmin=-max3, vmax=max3)
-            print ("max3 {}", max3)
 
         if len(sourceWaveArray) > 0:
             image = ax.imshow(sourceWaveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 

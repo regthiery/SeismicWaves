@@ -64,6 +64,8 @@ class Wave:
         self.lifePeriods = None
         self.vrefracted = 7000
         self.makeReflected = False
+        self.isOnMirror = False
+        self.isSourceLinear = False
         
         self.sourceCircleColor = '#1f77b4'          # bleu
         self.reflectedCircleColor = '#2ca02c'       # vert
@@ -264,18 +266,23 @@ class Wave:
                     x = x1 - (y-y1) * (yb-ya) / (xb-xa)
                     plt.plot ( [x1,x], [y1,y], linestyle="dotted",color='black',dashes=dashes)
             else:  
-                nrays=self.nrays
-                angle= 2*np.pi/nrays
-                x0 = self.x0
-                y0 = self.y0
-                dx = (self.scene.xmax-self.scene.xmin)
-                dy = (self.scene.ymax-self.scene.ymin)
-                R = np.sqrt (dx*dx+dy*dy)
-                for k in range(0,nrays+1):
-                    x1 = x0 + R * np.cos(angle*k)
-                    y1 = y0 + R * np.sin(angle*k)
-#                    plt.plot( [x0,x1], [y0,y1], linestyle="dotted", color='black',dashes=dashes)
+                if self.isOnMirror == False:
+                    nrays=self.nrays
+                    angle= 2*np.pi/nrays
+                    x0 = self.x0
+                    y0 = self.y0
+                    dx = (self.scene.xmax-self.scene.xmin)
+                    dy = (self.scene.ymax-self.scene.ymin)
+                    R = np.sqrt (dx*dx+dy*dy)
+                    for k in range(0,nrays+1):
+                        x1 = x0 + R * np.cos(angle*k)
+                        y1 = y0 + R * np.sin(angle*k)
+#                   plt.plot( [x0,x1], [y0,y1], linestyle="dotted", color='black',dashes=dashes)
                     plt.plot( [x0,x1], [y0,y1],  color='black', linewidth=0.5 )
+                else:
+                    if self.isSourceLinear:
+                        plt.plot ( [self.x0, self.xp], [self.y0,self.yp], linewidth=1, color='black')
+                        
 
     def drawSourceRay(self):
         if self.sourceWave != None:
@@ -338,21 +345,31 @@ class Wave:
 
     def drawFocus (self):
         if self.isDrawFocus==True:
-            angle = np.pi / 5
-            r = self.focusRadius 
-            points = np.zeros((11, 2)) 
-            for i in range(10):
-                if i % 2 == 0:
-                    x = self.x0+r * np.cos(i * angle)
-                    y = self.y0+r * np.sin(i * angle)
-                else:
-                    x = self.x0+r/2 * np.cos(i * angle)
-                    y = self.y0+r/2 * np.sin(i * angle)
-                points[i] = [x, y]
+            if self.isLinear == True:
+                alpha = self.linearAngle
+                xa = self.scene.xmin
+                xb = self.scene.xmax
+                x0 = self.x0
+                y0 = self.y0
+                ya = self.y0 + math.tan(alpha)*(xa-x0) 
+                yb = self.y0 + math.tan(alpha)*(xb-x0)
+                plt.plot ([xa,xb], [ya,yb], linewidth=1, color='black')            
+            else:
+                angle = np.pi / 5
+                r = self.focusRadius 
+                points = np.zeros((11, 2)) 
+                for i in range(10):
+                    if i % 2 == 0:
+                        x = self.x0+r * np.cos(i * angle)
+                        y = self.y0+r * np.sin(i * angle)
+                    else:
+                        x = self.x0+r/2 * np.cos(i * angle)
+                        y = self.y0+r/2 * np.sin(i * angle)
+                    points[i] = [x, y]
     
-            points[10]=points[0]
-            plt.fill(points[:,0], points[:,1],'r',zorder=3)
-            plt.plot(points[:,0], points[:,1],'black',zorder=4)
+                points[10]=points[0]
+                plt.fill(points[:,0], points[:,1],'r',zorder=3)
+                plt.plot(points[:,0], points[:,1],'black',zorder=4)
             
 
 
@@ -366,7 +383,6 @@ class Wave:
         self.calculateMovableFocus(t)
         
         A = np.ones_like (X) * self.amplitude
-        
         
         if self.isLinear == False:
             if t>= self.delayTime or self.isHidden :
@@ -386,16 +402,16 @@ class Wave:
                         waveArray [maskA] = 0
             else:
                 waveArray = np.zeros_like (X)
-                # waveArray = 0    
+
         else:
             if t>= self.delayTime or self.isHidden :
-                alpha = np.tan (self.linearAngle)
+                alpha = math.tan(self.linearAngle)
                 xa = self.scene.xmin
                 xb = self.scene.xmax
                 x0 = self.x0
                 y0 = self.y0
-                ya = self.y0 + math.tan(alpha)*(xa-x0) 
-                yb = self.y0 + math.tan(alpha)*(xb-x0)
+                ya = self.y0 + alpha*(xa-x0) 
+                yb = self.y0 + alpha*(xb-x0)
                     # X1 et Y1 are the projected points of X and Y onto
                     # the source plane
                 X1 = ( alpha*alpha*x0 - alpha*y0 + X + alpha*Y ) / (1+alpha*alpha)
@@ -407,9 +423,21 @@ class Wave:
                     A = np.exp (-self.attenuationFactor/D)
 
                 waveArray = A * np.sin ( 2*np.pi * ( (t-self.deltaT)/self.T - D/self.lambda0) + self.phase )            
+
+                if self.scene.isTransient:
+                    dmax = (t-self.delayTime) * self.v
+                    maskD = D > dmax
+                    waveArray [maskD] = 0
+                    
+                    if self.lifetime != None:
+                        dmin = (t-self.delayTime -self.lifetime) * self.v
+                        maskA = D < dmin
+                        waveArray [maskA] = 0
+
+
             else:
                 waveArray = np.zeros_like (X)
-                # waveArray = 0    
+
             
         return waveArray
 
