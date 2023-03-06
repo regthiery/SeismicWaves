@@ -9,6 +9,9 @@ from functools import partial
 import multiprocessing
 import re
 from matplotlib.patches import Polygon
+import matplotlib as mpl
+import matplotlib.colors as mcolors
+from matplotlib.colors import LightSource, Normalize
 
 
 from Wave import Wave
@@ -42,6 +45,10 @@ class Scene:
         self.isTransient = False
         self.hasGrid = False
         self.hasColorMap = False
+        self.colorMapName = 'RdBu'
+        self.colorMapIndex = 0
+        self.colorBar = False
+        self.colorMap = None
         self.isAttenuating = False
         self.attenuationFactor = 0
         self.hidden = False
@@ -53,6 +60,7 @@ class Scene:
         self.figWidth = 10
         self.figHeight = 10
         self.nsource = 50           # Nombre de sources ponctuelles de Huygens sur les mirroirs. Valeur par défaut.
+        self.normalize = False
         
             # data for the source plane
         self.x0 = self.xmin
@@ -379,6 +387,7 @@ class Scene:
                             phase1 = math.fmod( phase1, 1)
                         
                             wave2 = Wave(self)
+                            wave2.amplitude = 1 / ns
                             wave2.setPosition (x1,y1)
                             wave2.v = wave.vrefracted
                             wave2.setFrequence (wave.f)
@@ -389,6 +398,7 @@ class Scene:
                                 wave2.delayTime = d1 / wave.v 
                             
                             wave1 = Wave(self)
+                            wave1.amplitude = 1 / ns
                             wave1.setPosition (x1,y1)
                             wave1.v = wave.v
                             wave1.setFrequence (wave.f)
@@ -535,6 +545,13 @@ class Scene:
             poly = Polygon ( list(zip(x,y)),transform=ax.transData)
             return poly
 
+    #---------------------------------------------------------------------------
+    def buildColorMap(self):
+    #---------------------------------------------------------------------------
+        self.colorMap = plt.get_cmap(self.colorMapName)
+        self.colorMap.set_bad(color='white')
+        
+        
         
     #---------------------------------------------------------------------------
     def createAnimationFrameImage(self,  ti, i):
@@ -556,6 +573,8 @@ class Scene:
         sourceWaveArray = []
         reflectedWaveArray = []
         refractedWaveArray = []
+        n = 0
+        maxn = 0
         for wave in waves:
             if wave.isHidden == False:
                 waveArray0 = wave.createWave (ti)
@@ -564,17 +583,35 @@ class Scene:
                 elif wave.isRefracted:                    
                     refractedWaveArray  = self.sumWavesArray (refractedWaveArray, waveArray0)
                 else:
+                    maxn += wave.amplitude
                     sourceWaveArray = self.sumWavesArray (sourceWaveArray, waveArray0)    
+            else:
+                if wave.isReflected == False and wave.isRefracted == False:
+                    maxn += wave.amplitude
 
+        min0 = max0 = min1 = max1 = min2 = max2 = 0
+        if len(sourceWaveArray) > 0:
+            min0 = np.amin(sourceWaveArray)
+            max0 = np.amax(sourceWaveArray)
+        if len(reflectedWaveArray) > 0:
+            min1 = np.amin(reflectedWaveArray)
+            max1 = np.amax(reflectedWaveArray)
+        if len(refractedWaveArray) > 0:
+            min2 = np.amin(refractedWaveArray)
+            max2 = np.amax(refractedWaveArray)
+
+        max3 = max ( [abs(min0), abs(min1), abs(min2), max0, max1, max2])        
+        if self.normalize:    
+            norm = Normalize (vmin=-maxn, vmax=maxn)
+            print ("maxn {}", maxn)
+        else:    
+            norm = Normalize (vmin=-max3, vmax=max3)
+            print ("max3 {}", max3)
 
         if len(sourceWaveArray) > 0:
-            if self.hasColorMap:
-                n = len(waves)
-                sourceWaveArray[0][0] = n + 0.5
-                sourceWaveArray[0][1] = -n - 0.5
-
             image = ax.imshow(sourceWaveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
-                      cmap="RdBu", origin="lower")
+                          cmap=self.colorMap, origin="lower", interpolation="bilinear", norm=norm)
+            
 
         reflectedClipPath = None
         refractedClipPath = None
@@ -585,16 +622,16 @@ class Scene:
 
         if len(reflectedWaveArray) > 0:
             image = ax.imshow(reflectedWaveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
-                      cmap="RdBu", origin="lower")
+                    cmap=self.colorMap, origin="lower", interpolation="bilinear", norm=norm)
             image.set_clip_path(reflectedClipPath)
 
         if len(refractedWaveArray) > 0:
             image = ax.imshow(refractedWaveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
-                      cmap="RdBu", origin="lower")
+                      cmap=self.colorMap, origin="lower", norm=norm)
             image.set_clip_path(refractedClipPath)
 
     
-        if self.hasColorMap:
+        if self.colorBar:
             cp = ax.get_children()
             cp2 = cp[0]
             plt.colorbar( cp2, ax=ax)
@@ -759,10 +796,24 @@ class Scene:
                 key = tokens[0]
                 data[key] = float(eval(tokens[1]))
                 current_section = None
-            elif tokens[0] in ( "randomPhase", "transient", "grid", "colorMap", "refracted", "equalAxis" ):
+            elif tokens[0] in ( "randomPhase", "transient", "grid",  "refracted", "equalAxis", "colorBar", "normalize" ):
                 key = tokens[0]
                 data[key] = True
                 current_section = None
+            
+            
+            elif tokens[0] == 'colorMap':
+                self.hasColorMap = True
+                ntokens = len (tokens)
+                if ntokens == 1:
+                    data["colorMapName"] = 'RdBu'
+                elif ntokens == 2:  
+                    cmaps = plt.colormaps() 
+                    if tokens[1].isdigit():
+                        data["colorMapIndex"] = int (tokens[1])
+                        data["colorMapName"] = plt.colormaps()[ data["colorMapIndex"] ]
+                    else:
+                        data["colorMapName"] = tokens[1]    
             
             elif tokens [0] == "wave": 
                 if "waves" not in data:
@@ -904,7 +955,7 @@ class Scene:
 
     def buildScene(self,data):
         
-        for key in ["xmin", "xmax", "ymin", "ymax", "nx", "ny", "na", "tmin", "tmax", "refracted", "clipped", "equalAxis"]:
+        for key in ["xmin", "xmax", "ymin", "ymax", "nx", "ny", "na", "tmin", "tmax", "refracted", "clipped", "equalAxis", "colorBar", "normalize"]:
             if key in data:
                 setattr(self, key, data[key])
 
@@ -922,6 +973,10 @@ class Scene:
         if "frame" in data:
             self.onlyFrame = True    
             self.selectedFrame = data["frame"]
+        if "colorMapName" in data:
+            self.colorMapName = data["colorMapName"]
+        if "colorMapIndex" in data:
+            self.colorMapIndex = data["colorMapIndex"]
 
 
         if "grid" in data:
@@ -1026,7 +1081,7 @@ class Scene:
             for wave in self.waves:
                 wave.setLifePeriods (data["lifetime"])
                 
-                
+        self.buildColorMap()        
             
 
         return self

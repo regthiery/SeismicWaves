@@ -1,0 +1,43 @@
+#=====================================================================================
+#
+# Script de démonstration pour SeismicWaves
+#
+#		Source ponctuelle avec miroir
+#
+#=====================================================================================
+
+
+	#-------------------------------------------------------------------------
+	# Les limites du profil sismique
+	#-------------------------------------------------------------------------
+
+xmin 	0
+xmax 	5000
+ymin 	0
+ymax	5000
+
+tmin 	0.3
+tmax 	1
+fps  	30
+
+drawFocus
+focusRadius 15
+drawCircles
+transient
+
+# frame 100
+# colorMap RdPu
+colorBar
+
+
+mirror 0.3 0.4
+
+wave
+	x 2500
+	y 100	
+	f 10
+	v 6000
+	vrefracted 8000
+	lifetime 2
+	
+
