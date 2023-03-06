@@ -409,77 +409,74 @@ class Scene:
                                 wave1.delayTime = d1 / wave1.v 
                             
                             
-                        
-                        
-                    
-                        
-    
-    
-        # if len(self.mirrors)>0:
-        #     mirror=self.mirrors[0]
-        #     fa=mirror[0]
-        #     fb=mirror[1]
-        #     xa1 = self.xmin
-        #     ya1 = (self.ymax - self.ymin)*fa + self.ymin
-        #     xb1 = self.xmax
-        #     yb1 = (self.ymax - self.ymin)*fb + self.ymin
-        #     alpha1 = (yb1-ya1)/(xb1-xa1)
-        #     waves = copy.copy(self.waves)
+    #---------------------------------------------------------------------------
+    def addReflectedSources(self):
+    #---------------------------------------------------------------------------
+        if len(self.mirrors)>0:
+            mirror=self.mirrors[0]
+            fa=mirror['fa']
+            fb=mirror['fb']
+            xa1 = self.xmin
+            ya1 = (self.ymax - self.ymin)*fa + self.ymin
+            xb1 = self.xmax
+            yb1 = (self.ymax - self.ymin)*fb + self.ymin
+            alpha1 = (yb1-ya1)/(xb1-xa1)
+            waves = copy.copy(self.waves)
 
-        #     i = 0
-        #     for wave0 in waves:
-                
-        #         wave0.isHidden=True
-        #         wave1 = Wave(self)
-        #         wave1.sourceWave = wave0
-        #         wave1.isDrawSourceRay = True
-        #         x0 = wave0.x0
-        #         y0 = wave0.y0
+            i = 0
+            for wave0 in waves:
+                if wave0.isReflected == Fase and wave0.isRefracted == False:
+                    wave0.isHidden=True
+                    wave1 = Wave(self)
+                    wave1.sourceWave = wave0
+                    wave1.isDrawSourceRay = True
+                    x0 = wave0.x0
+                    y0 = wave0.y0
 
-        #         angle0 = wave0.linearAngle
-        #         radangle0 = angle0 * math.pi / 180
-        #         xa0 = self.xmin
-        #         xb0 = self.xmax
-        #         ya0 = y0 + math.tan(radangle0)*(xa0-x0) 
-        #         yb0 = y0 + math.tan(radangle0)*(xb0-x0)
+                    angle0 = wave0.linearAngle
+                    radangle0 = angle0 * math.pi / 180
+                    xa0 = self.xmin
+                    xb0 = self.xmax
+                    ya0 = y0 + math.tan(radangle0)*(xa0-x0) 
+                    yb0 = y0 + math.tan(radangle0)*(xb0-x0)
                 
-        #         alpha0 = (yb0-ya0)/(xb0-xa0)
+                    alpha0 = (yb0-ya0)/(xb0-xa0)
                 
-        #         x1 = (x0 + alpha0*y0 + alpha0*alpha1*xa1 - alpha0*ya1) / (1+alpha0*alpha1)
-        #         y1 = ( alpha1*x0 + alpha0*alpha1*y0 - xa1 * alpha1 + ya1 ) / (1+alpha0*alpha1)
+                    x1 = (x0 + alpha0*y0 + alpha0*alpha1*xa1 - alpha0*ya1) / (1+alpha0*alpha1)
+                    y1 = ( alpha1*x0 + alpha0*alpha1*y0 - xa1 * alpha1 + ya1 ) / (1+alpha0*alpha1)
                 
-        #         radangle1 =  math.atan(alpha1)
-        #         angle1 = radangle1*180/math.pi
+                    radangle1 =  math.atan(alpha1)
+                    angle1 = radangle1*180/math.pi
                 
-        #         d=(x1-xa1)*(x1-xa1)+(y1-ya1)*(y1-ya1)
-        #         d = np.sqrt(d)
-        #         wave1.deltaT = -d/wave1.v*math.sin(math.pi/180*(angle0-angle1))
+                    d=(x1-xa1)*(x1-xa1)+(y1-ya1)*(y1-ya1)
+                    d = np.sqrt(d)
+                    wave1.deltaT = -d/wave1.v*math.sin(math.pi/180*(angle0-angle1))
                 
-        #         wave1.setPosition(x1,y1)
+                    wave1.setPosition(x1,y1)
                 
-        #         wave1.isDrawRays=False
-        #         wave1.isDrawCircles=True
-        #         wave1.isDrawClippedArea=False
+                    wave1.isDrawRays=False
+                    wave1.isDrawCircles=True
+                    wave1.isDrawClippedArea=False
                 
-        #         if i==0:
-        #             wave1.isReflectedWave=True
-        #             wave1.wave0 = wave0
-        #             wave1.xa = xa1
-        #             wave1.ya = ya1
-        #             wave1.xb = xb1
-        #             wave1.yb = yb1
-        #             wave1.isDrawReflectedRays=False
-        #             wave1.isHidden=True
+                    if i==0:
+                        wave1.isReflectedWave=True
+                        wave1.wave0 = wave0
+                        wave1.xa = xa1
+                        wave1.ya = ya1
+                        wave1.xb = xb1
+                        wave1.yb = yb1
+                        wave1.isDrawReflectedRays=False
+                        wave1.isHidden=True
     
-        #         i+=1
+                    i+=1
 
-        #     for wave0 in waves:
-        #         wave1 = Wave(self)
-        #         wave1.setReflectedWave(wave0,mirror)
-        #         wave1.isDrawRays=False
-        #         wave1.isDrawCircles=False
-        #         wave1.isDrawClippedArea=False
-        #         wave1.isHidden=True
+            # for wave0 in waves:
+            #     wave1 = Wave(self)
+            #     wave1.setReflectedWave(wave0,mirror)
+            #     wave1.isDrawRays=False
+            #     wave1.isDrawCircles=False
+            #     wave1.isDrawClippedArea=False
+            #     wave1.isHidden=True
 
     #---------------------------------------------------------------------------
     def sumWavesArray (self,waveArray1,waveArray2):
@@ -610,7 +607,7 @@ class Scene:
 
         if len(sourceWaveArray) > 0:
             image = ax.imshow(sourceWaveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
-                          cmap=self.colorMap, origin="lower", interpolation="bilinear", norm=norm)
+                          cmap=self.colorMap, origin="lower",  norm=norm)
             
 
         reflectedClipPath = None
@@ -622,7 +619,7 @@ class Scene:
 
         if len(reflectedWaveArray) > 0:
             image = ax.imshow(reflectedWaveArray, extent=(self.xmin, self.xmax, self.ymin, self.ymax), 
-                    cmap=self.colorMap, origin="lower", interpolation="bilinear", norm=norm)
+                    cmap=self.colorMap, origin="lower",  norm=norm)
             image.set_clip_path(reflectedClipPath)
 
         if len(refractedWaveArray) > 0:
@@ -855,6 +852,9 @@ class Scene:
             elif tokens[0] == "linear": 
                 if current_section == "wave":
                     wave["linear"] = True
+            elif tokens[0] == "makeReflected": 
+                if current_section == "wave":
+                    wave["makeReflected"] = True
                     
             elif tokens[0] in ("clipped"):
                 if current_section == "wave":
@@ -1007,19 +1007,20 @@ class Scene:
                 y = waveData["y"] if "y" in waveData else 0
                 wave.setPosition(x, y)
 
-                wave.v = waveData["v"]                       if "v"           in waveData else wave.v
-                wave.setFrequence(waveData["f"])             if "f"           in waveData else None
-                wave.setAttenuation(waveData["attenuation"]) if "attenuation" in waveData else None
-                wave.setLifePeriods(waveData["lifetime"])    if "lifetime"    in waveData else None
-                wave.setLinear()                             if "linear"      in waveData else None
-                wave.linearAngle = waveData["alpha"]         if "alpha"       in waveData else wave.linearAngle
-                wave.setPhase(waveData["phase"])             if "phase"       in waveData else None
-                wave.setDrawRays(True, waveData["drawRays"]) if "drawRays"    in waveData else None
-                wave.setDrawCircles(True)                    if "drawCircles" in waveData else None
-                wave.setDrawFocus(True)                      if "drawFocus"   in waveData else None
-                wave.focusRadius = waveData["focusRadius"]   if "focusRadius" in waveData else wave.focusRadius
-                wave.isDrawClippedArea = True                if "clipped"     in waveData else wave.isDrawClippedArea
-                wave.vrefracted = waveData["vrefracted"]     if "vrefracted"  in waveData else wave.v
+                wave.v = waveData["v"]                         if "v"           in waveData else wave.v
+                wave.setFrequence(waveData["f"])               if "f"           in waveData else None
+                wave.setAttenuation(waveData["attenuation"])   if "attenuation" in waveData else None
+                wave.setLifePeriods(waveData["lifetime"])      if "lifetime"    in waveData else None
+                wave.setLinear()                               if "linear"      in waveData else None
+                wave.linearAngle = waveData["alpha"]           if "alpha"       in waveData else wave.linearAngle
+                wave.setPhase(waveData["phase"])               if "phase"       in waveData else None
+                wave.setDrawRays(True, waveData["drawRays"])   if "drawRays"    in waveData else None
+                wave.setDrawCircles(True)                      if "drawCircles" in waveData else None
+                wave.setDrawFocus(True)                        if "drawFocus"   in waveData else None
+                wave.focusRadius = waveData["focusRadius"]     if "focusRadius" in waveData else wave.focusRadius
+                wave.isDrawClippedArea = True                  if "clipped"     in waveData else wave.isDrawClippedArea
+                wave.vrefracted = waveData["vrefracted"]       if "vrefracted"  in waveData else wave.v
+                wave.makeReflected = waveData["makeReflected"] if "makeReflected"  in waveData else wave.makeReflected
 
         if "discreteLinears" in data:
             nDiscreteLinears = len (data["discreteLinears"])

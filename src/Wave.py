@@ -63,6 +63,7 @@ class Wave:
         self.lifetime = None
         self.lifePeriods = None
         self.vrefracted = 7000
+        self.makeReflected = False
         
         self.sourceCircleColor = '#1f77b4'          # bleu
         self.reflectedCircleColor = '#2ca02c'       # vert
@@ -94,6 +95,8 @@ class Wave:
         print("\tlifetime      {}".format(self.lifetime))
         print("\treflected     {}".format(self.isReflected))
         print("\trefracted     {}".format(self.isRefracted))
+        print("\tlinear source {}".format(self.isLinear))
+        print("\tlinear angle  {}".format(self.linearAngle))
 
     def setPhase(self,valueInDegree):
         self.phase = valueInDegree * np.pi / 180
@@ -386,7 +389,7 @@ class Wave:
                 # waveArray = 0    
         else:
             if t>= self.delayTime or self.isHidden :
-                alpha = np.tan (math.pi*self.linearAngle/180)
+                alpha = np.tan (self.linearAngle)
                 xa = self.scene.xmin
                 xb = self.scene.xmax
                 x0 = self.x0
