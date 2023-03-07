@@ -66,6 +66,7 @@ class Wave:
         self.makeReflected = False
         self.isOnMirror = False
         self.isSourceLinear = False
+        self.viewOptions = 0b00000000
         
         self.sourceCircleColor = '#1f77b4'          # bleu
         self.reflectedCircleColor = '#2ca02c'       # vert
@@ -83,7 +84,7 @@ class Wave:
         print("\tf             {}".format(self.f))
         print("\tlambda        {}".format(self.lambda0))
         print("\tphase         {}".format(self.phase * 180 / math.pi))
-        print ("\tamplitude     {}".format(self.amplitude))    
+        print ("\tamplitude    {}".format(self.amplitude))    
         print("\tdrawRays      {}".format(self.isDrawRays))
         print("\tnRays         {}".format(self.nrays))
         print("\tdrawCircles   {}".format(self.isDrawCircles))
@@ -99,6 +100,7 @@ class Wave:
         print("\trefracted     {}".format(self.isRefracted))
         print("\tlinear source {}".format(self.isLinear))
         print("\tlinear angle  {}".format(self.linearAngle))
+        print("\tview Options  {}".format(self.viewOptions))
 
     def setPhase(self,valueInDegree):
         self.phase = valueInDegree * np.pi / 180
@@ -174,62 +176,62 @@ class Wave:
             self.x0 = self.x00 + (self.x01-self.x00) * (t-self.scene.tmin)/(self.scene.tmax-self.scene.tmin)
             self.y0 = self.y00 + (self.y01-self.y00) * (t-self.scene.tmin)/(self.scene.tmax-self.scene.tmin)
         
-    def setReflectedWave(self,wave0,mirror):
-        self.isReflectedWave=True
-        self.mirror = mirror
-        self.wave0 = wave0
+    # def setReflectedWave(self,wave0,mirror):
+    #     self.isReflectedWave=True
+    #     self.mirror = mirror
+    #     self.wave0 = wave0
         
-        x0 = wave0.x0
-        y0 = wave0.y0
+    #     x0 = wave0.x0
+    #     y0 = wave0.y0
         
-        fa = mirror[0]
-        fb = mirror[1]
-        xa = self.scene.xmin
-        ya = (self.scene.ymax - self.scene.ymin)*fa + self.scene.ymin
-        xb = self.scene.xmax
-        yb = (self.scene.ymax - self.scene.ymin)*fb + self.scene.ymin
+    #     fa = mirror[0]
+    #     fb = mirror[1]
+    #     xa = self.scene.xmin
+    #     ya = (self.scene.ymax - self.scene.ymin)*fa + self.scene.ymin
+    #     xb = self.scene.xmax
+    #     yb = (self.scene.ymax - self.scene.ymin)*fb + self.scene.ymin
 
-        alpha = (yb-ya)/(xb-xa)
+    #     alpha = (yb-ya)/(xb-xa)
 
-        var0 = 1 + alpha*alpha
-        var1 =  x0 - alpha*alpha*x0 + 2 * alpha * y0 + 2 * alpha*alpha * xa - 2 * alpha * ya
-        var2 = -y0 + alpha*alpha*y0 + 2 * alpha * x0 - 2 * alpha       * xa + 2 *         ya
+    #     var0 = 1 + alpha*alpha
+    #     var1 =  x0 - alpha*alpha*x0 + 2 * alpha * y0 + 2 * alpha*alpha * xa - 2 * alpha * ya
+    #     var2 = -y0 + alpha*alpha*y0 + 2 * alpha * x0 - 2 * alpha       * xa + 2 *         ya
 
-        self.x0 = var1 / var0
-        self.y0 = var2 / var0
-        self.xa=xa
-        self.xb=xb
-        self.ya=ya
-        self.yb=yb
+    #     self.x0 = var1 / var0
+    #     self.y0 = var2 / var0
+    #     self.xa=xa
+    #     self.xb=xb
+    #     self.ya=ya
+    #     self.yb=yb
         
         
             
-    def drawReflectedRay(self,f):
-        if self.isReflectedWave and self.isDrawReflectedRays:
-            x3 = self.scene.xmin + f * (self.scene.xmax-self.scene.xmin)
-            y3 = self.scene.ymin
-            x0 = self.wave0.x0
-            y0 = self.wave0.y0
-            x1 = self.x0
-            y1 = self.y0
-            xa=self.xa
-            ya=self.ya
-            xb=self.xb
-            yb=self.yb
-            alpha = (y3-y1)/(x3-x1)
-            beta = (yb-ya)/(xb-xa)
-            x2 = ( y1 - ya - x1*alpha + xa*alpha)/(beta-alpha)            
-            y2 = ( y1*beta-x1*alpha*beta-ya*alpha+xa*alpha*beta)/(beta-alpha)
+    # def drawReflectedRay(self,f):
+    #     if self.isReflectedWave and self.isDrawReflectedRays:
+    #         x3 = self.scene.xmin + f * (self.scene.xmax-self.scene.xmin)
+    #         y3 = self.scene.ymin
+    #         x0 = self.wave0.x0
+    #         y0 = self.wave0.y0
+    #         x1 = self.x0
+    #         y1 = self.y0
+    #         xa=self.xa
+    #         ya=self.ya
+    #         xb=self.xb
+    #         yb=self.yb
+    #         alpha = (y3-y1)/(x3-x1)
+    #         beta = (yb-ya)/(xb-xa)
+    #         x2 = ( y1 - ya - x1*alpha + xa*alpha)/(beta-alpha)            
+    #         y2 = ( y1*beta-x1*alpha*beta-ya*alpha+xa*alpha*beta)/(beta-alpha)
             
-            plt.plot ( [x0,x2], [y0,y2], 'k-')
-            plt.plot ( [x1,x2], [y1,y2], 'k-')
-            plt.plot ( [x2,x3], [y2,y3], 'k-')
+    #         plt.plot ( [x0,x2], [y0,y2], 'k-')
+    #         plt.plot ( [x1,x2], [y1,y2], 'k-')
+    #         plt.plot ( [x2,x3], [y2,y3], 'k-')
             
-    def drawReflectedRays(self):
-        if self.isReflectedWave and self.isDrawReflectedRays:
-            for i in range(11):
-                f = i/10
-                self.drawReflectedRay(f)
+    # def drawReflectedRays(self):
+    #     if self.isReflectedWave and self.isDrawReflectedRays:
+    #         for i in range(11):
+    #             f = i/10
+    #             self.drawReflectedRay(f)
             
     def drawRays(self):
         if self.isDrawRays:
@@ -243,7 +245,7 @@ class Wave:
             if self.isLinear:
                 nrays=self.nrays
 
-                alpha = np.tan (math.pi*self.linearAngle/180)
+                alpha = np.tan (self.linearAngle)
                 xa = self.scene.xmin
                 xb = self.scene.xmax
                 ya = self.y0 + alpha*(xa-self.x0) 
@@ -255,7 +257,7 @@ class Wave:
                 ymin = self.scene.ymin
                 xmax = self.scene.xmax
                 ymax = self.scene.ymax
-                for k in range(1,nrays+1):
+                for k in range(0,nrays+1):
                     f = k * delta / d
                     x1 = xa + f * (xb - xa)
                     y1 = ya + f * (yb - ya)
@@ -277,8 +279,8 @@ class Wave:
                     for k in range(0,nrays+1):
                         x1 = x0 + R * np.cos(angle*k)
                         y1 = y0 + R * np.sin(angle*k)
+                        plt.plot( [x0,x1], [y0,y1],  color='black', linewidth=0.5 )
 #                   plt.plot( [x0,x1], [y0,y1], linestyle="dotted", color='black',dashes=dashes)
-                    plt.plot( [x0,x1], [y0,y1],  color='black', linewidth=0.5 )
                 else:
                     if self.isSourceLinear:
                         plt.plot ( [self.x0, self.xp], [self.y0,self.yp], linewidth=1, color='black')
