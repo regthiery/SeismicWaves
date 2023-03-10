@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 
 sys.path.append("src")
 
@@ -21,6 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('--frame', type=int, help='Image à calculer')
     args = parser.parse_args()
     filename = args.script
+    filename = os.path.splitext(filename)[0]
     parallel = args.parallel
     frame = args.frame
     
