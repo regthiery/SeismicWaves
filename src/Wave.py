@@ -34,6 +34,7 @@ class Wave:
         self.phase = 0                              # Initialise le dephasage de la source
         self.amplitude = 1
         self.isReflectedWave= False                 # Initialise un booléen qui indique si l'onde est réfléchie ou non.
+        self.isRefractedWave= False                 # Initialise un booléen qui indique si l'onde est réfractée ou non.
         self.mirror=[0.5,0.5]                       # Initialise les coordonnées du miroir qui réfléchit l'onde. 
                                                     # Par défaut, l'onde est réfléchie symétriquement par rapport au centre de la scène.
         self.scene=scene                            # Initialise la scène où l'onde est dessinée.
@@ -58,12 +59,13 @@ class Wave:
         self.isMovableFocus = False                 # Initialise un booléen qui indique si le point focal se déplace ou non.
         self.isAttenuating = False
         self.attenuationFactor = 0
-        self.isReflected = False
-        self.isRefracted = False
+        # self.isReflected = False
+        # self.isRefracted = False
         self.lifetime = None
         self.lifePeriods = None
         self.vrefracted = 7000
         self.makeReflected = False
+        self.makeRefracted = False
         self.isOnMirror = False
         self.isSourceLinear = False
         self.viewOptions = 0b00000000
@@ -96,23 +98,29 @@ class Wave:
         print("\tattenuation   {}".format(self.attenuationFactor))
         print("\thidden        {}".format(self.isHidden))
         print("\tlifetime      {}".format(self.lifetime))
-        print("\treflected     {}".format(self.isReflected))
-        print("\trefracted     {}".format(self.isRefracted))
         print("\tlinear source {}".format(self.isLinear))
         print("\tlinear angle  {}".format(self.linearAngle))
         print("\tview Options  {}".format(self.viewOptions))
+        print("\treflectedWave {}".format(self.isReflectedWave))
+        print("\trefractedWave {}".format(self.isRefractedWave))
+#        print("\treflected     {}".format(self.isReflected ))
+#        print("\trefracted     {}".format(self.isRefracted ))
 
     def setPhase(self,valueInDegree):
         self.phase = valueInDegree * np.pi / 180
         
     def setReflected(self):
-        self.isReflected = True
-        self.isRefracted = False
+#        self.isReflected = True
+#        self.isRefracted = False
+        self.isReflectedWave = True
+        self.isRefractedWave = False
         self.circleColor = self.reflectedCircleColor
 
     def setRefracted(self):
-        self.isReflected = False
-        self.isRefracted = True
+#        self.isReflected = False
+#        self.isRefracted = True
+        self.isReflectedWave = False
+        self.isRefractedWave = True
         self.circleColor = self.refractedCircleColor
         
     def setLifePeriods(self, nperiods):
@@ -311,7 +319,7 @@ class Wave:
             alphamin = math.ceil(alphamin)
             alphamax = math.ceil(alphamax)
             for alpha in list(range(alphamin, alphamax)):
-                if self.isReflected or self.isRefracted:
+                if self.isReflectedWave or self.isRefractedWave:
                     phase = -self.phase  
                 else:
                     phase = self.phase    

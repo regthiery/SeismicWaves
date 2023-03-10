@@ -2,8 +2,6 @@
 #
 # Script de démonstration pour SeismicWaves
 #
-#		Source ponctuelle avec miroir
-#
 #=====================================================================================
 
 
@@ -14,33 +12,24 @@
 xmin 	0
 xmax 	5000
 ymin 	0
-ymax	5000
+ymax	4000
+equalAxis
 
-tmin 	0.0
-tmax 	1
+tmin 	0
+tmax 	2/3
 fps  	30
 
+# drawRays 35
+# drawCircles
 drawFocus
-focusRadius 15
-drawCircles
-drawRays 10
-transient
+focusRadius 100
 
-frame 112
+	#-------------------------------------------------------------------------
+	# Une source ponctuelle
+	#-------------------------------------------------------------------------
 
-
-mirror 0.5 0.3
-
-wave
-	x 2500
-	y 100	
-	f 10
-	v 6000
-	vrefracted 8000
+wave	
+	x 1500
+	y 500
 	linear
-	alpha -30
-	lifetime 2
-# 	makeReflected
-	viewOptions clipSourceAbove clipRefracBelow clipReflexAbove
-	
-
+	alpha -20
