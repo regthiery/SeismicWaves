@@ -127,6 +127,7 @@ class Scene:
         print ("Transient     {}".format(self.isTransient))
         print ("Refracted     {}".format(self.refracted))
         print ("Clipped       {}".format(self.clipped))
+        print("\tNormalisze   {}".format(self.normalize))
 
         k = 1
         for wave in self.waves:
@@ -404,7 +405,7 @@ class Scene:
             for mirror in self.mirrors:
                 
                 for wave in self.waves:
-                    if wave.makeReflected == True:
+                    if wave.makeReflected == True or wave.makeRefracted:
                         return 
                     # if wave.isReflected == False and wave.isRefracted == False :
                     #     wave.isHidden = True
@@ -414,7 +415,7 @@ class Scene:
                 
                 for wave in waves:
 #                    if wave.isReflected == False and wave.isRefracted == False and wave.makeReflected == False :
-                    if wave.isReflectedWave == False and wave.isRefractedWave == False and wave.makeReflected == False :
+                    if wave.isReflectedWave == False and wave.isRefractedWave == False and wave.makeReflected == False and wave.makeRefracted == False:
                         x0 = wave.x0
                         y0 = wave.y0
                         segmentationPoints = mirror["segmented"]
@@ -531,14 +532,17 @@ class Scene:
                     y0=wave0.y0
                     (xp,yp) = self.calculateProjectionPointOnLine (x0, y0, xa, ya, xb, yb)
                     
-                    x1 = 2 * xp - x0
-                    y1 = 2 * yp - y0
+                    alpha = wave0.v / wave0.vrefracted 
+                    
+                    x1 = xp + (x0-xp) * alpha
+                    y1 = yp + (y0-yp) * alpha
 
                     wave1 = Wave(self)
                     wave1.amplitude = wave0.amplitude
                     wave1.setPosition (x1,y1)
                     wave1.setRefracted()
-                    wave1.v = wave0.v
+                    wave1.v = wave0.vrefracted
+                    wave1.vrefracted = wave0.v
                     wave1.setFrequence (wave0.f)
                     wave1.phase = wave0.phase
                     wave1.lifetime = wave0.lifetime
@@ -548,9 +552,16 @@ class Scene:
                         
                     if wave0.isLinear:
                         angle0 = wave0.linearAngle
-                        angle2 = angle1 - angle0
+                        angle2 = angle1 + angle0
+                        
+                        sina = np.sin(angle0) * wave0.vrefracted/wave0.v
+                        if abs(sina) <= 1.0:
+                            angle2 = math.asin (sina)
+                        
+                        
                         wave1.isLinear = True
-                        wave1.linearAngle = angle2
+                        wave1.linearAngle = angle2 
+                        wave1.phase = wave0.phaser
 
     #---------------------------------------------------------------------------
     def sumWavesArray (self,waveArray1,waveArray2):
@@ -701,9 +712,9 @@ class Scene:
         mintot = abs(min00) + abs(min01) + abs(min02)
         maxtot = max00 + max01 +  max02 
         if self.normalize:    
-            norm = Normalize (vmin=-maxn, vmax=maxn)
-        else:    
             norm = Normalize (vmin=-maxtot, vmax=maxtot)
+        else:
+            norm = 'linear'
       
 
         imageData0 = []
@@ -1101,6 +1112,11 @@ class Scene:
                     discreteLinear["phase"] = float(tokens[1])
                 elif current_section == "wave":
                     wave["phase"] = float(tokens[1])
+            elif tokens[0] == "phaser": 
+                if current_section == "discreteLinear":
+                    discreteLinear["phaser"] = float(tokens[1])
+                elif current_section == "wave":
+                    wave["phaser"] = float(tokens[1])
 
             elif tokens[0] == "vrefracted": 
                 if current_section == "discreteLinear":
@@ -1181,6 +1197,7 @@ class Scene:
                 wave.setLinear()                               if "linear"         in waveData else None
                 wave.linearAngle = waveData["alpha"]           if "alpha"          in waveData else wave.linearAngle
                 wave.setPhase(waveData["phase"])               if "phase"          in waveData else None
+                wave.setPhaser(waveData["phaser"])             if "phaser"         in waveData else None
                 wave.setDrawRays(True, waveData["drawRays"])   if "drawRays"       in waveData else None
                 wave.setDrawCircles(True)                      if "drawCircles"    in waveData else None
                 wave.setDrawFocus(True)                        if "drawFocus"      in waveData else None
@@ -1205,6 +1222,7 @@ class Scene:
                 f        = discreteLinear.get("f", 0)
                 nsource  = discreteLinear.get("nsource", 3)
                 phase    = discreteLinear.get("phase", 0)
+                phaser   = discreteLinear.get("phaser", 0)
                 vrupture = discreteLinear.get("vrupture", None)
 
                 wavesList = self.buildDiscreteLinearSource(x,y,alpha,nsource,length,v,f,phase) 
@@ -1224,6 +1242,10 @@ class Scene:
                         wave.setLifePeriods (discreteLinear["lifetime"])
                     if "delayTime" in discreteLinear:    
                         wave.delayTime = discreteLinear["delayTime"] 
+                    if "phase" in discreteLinear:    
+                        wave.setPhase ( discreteLinear["phase"] ) 
+                    if "phaser" in discreteLinear:    
+                        wave.setPhaser ( discreteLinear["phaser"] ) 
                     if "vrefracted" in discreteLinear:
                         wave.vrefracted = discreteLinear["vrefracted"]
                     if self.randomPhase:

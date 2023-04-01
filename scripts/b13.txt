@@ -1,0 +1,45 @@
+#=====================================================================================
+#
+# Script de démonstration pour SeismicWaves
+##
+#=====================================================================================
+
+
+
+xmin 	0
+xmax 	5000
+ymin 	0
+ymax	5000
+
+
+tmin 	0.4
+tmax 	1
+fps  	30
+
+# drawFocus
+focusRadius 15
+# drawCircles
+# drawRays 60
+# transient
+
+# frame 40
+
+
+mirror 0.5 0.5
+
+wave
+	x 0
+	y 0	
+	f 10
+	v 6000
+	vrefracted 9000
+ 	linear
+	alpha -50
+	makeReflected
+# 	phaser -116
+ 	viewOptions clipSourceAbove clipReflexAbove
+#  	viewOptions clipReflexAbove
+#  	viewOptions clipSourceAbove
+
+	
+

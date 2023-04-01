@@ -32,6 +32,7 @@ class Wave:
         self.T = 1/self.f                           # Calcule la période par défaut de l'onde à partir de sa fréquence.
         self.lambda0 = self.T * self.v              # Calcule la longueur d'onde de l'onde à partir de sa période et de sa vitesse.
         self.phase = 0                              # Initialise le dephasage de la source
+        self.phaser = 0                             # Initialise le dephasage de l'onde linéaire réfractée
         self.amplitude = 1
         self.isReflectedWave= False                 # Initialise un booléen qui indique si l'onde est réfléchie ou non.
         self.isRefractedWave= False                 # Initialise un booléen qui indique si l'onde est réfractée ou non.
@@ -83,6 +84,7 @@ class Wave:
         print("\tx0            {}".format(self.x0))
         print("\ty0            {}".format(self.y0))
         print("\tv             {}".format(self.v))
+        print("\tvrefracted    {}".format(self.vrefracted))
         print("\tf             {}".format(self.f))
         print("\tlambda        {}".format(self.lambda0))
         print("\tphase         {}".format(self.phase * 180 / math.pi))
@@ -108,6 +110,9 @@ class Wave:
 
     def setPhase(self,valueInDegree):
         self.phase = valueInDegree * np.pi / 180
+
+    def setPhaser(self,valueInDegree):
+        self.phaser = valueInDegree * np.pi / 180
         
     def setReflected(self):
 #        self.isReflected = True

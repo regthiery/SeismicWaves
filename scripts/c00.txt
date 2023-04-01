@@ -23,7 +23,7 @@ fps  	30
 drawFocus
 focusRadius 20
 
-drawRays 60
+transient
 
 	#-------------------------------------------------------------------------
 	# Une série de sources ponctuelles alignées
@@ -37,5 +37,16 @@ discreteLinear
 	alpha 0
 	v 6000
 	f 10	
-	
+	lifetime 1
+
+discreteLinear
+	x 2500
+	y 2200
+	length 4000
+	nsource 40
+	alpha 0
+	v 6000
+	f 10	
+	lifetime 1
+	delayTime 0.2
 
