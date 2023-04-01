@@ -25,6 +25,8 @@ focusRadius 20
 
 transient
 
+# frame 80
+
 	#-------------------------------------------------------------------------
 	# Une série de sources ponctuelles alignées
 	#-------------------------------------------------------------------------
@@ -38,6 +40,20 @@ discreteLinear
 	v 6000
 	f 10	
 	lifetime 1
+	delayTime 0.1
+	stopTime 0.3
+
+discreteLinear
+	x 2500
+	y 1600
+	length 4000
+	nsource 40
+	alpha 0
+	v 6000
+	f 10	
+	lifetime 1
+	delayTime 0.2
+	stopTime 0.4
 
 discreteLinear
 	x 2500
@@ -48,5 +64,18 @@ discreteLinear
 	v 6000
 	f 10	
 	lifetime 1
-	delayTime 0.2
+	delayTime 0.3
+	stopTime 0.4
+
+discreteLinear
+	x 2500
+	y 2800
+	length 4000
+	nsource 40
+	alpha 0
+	v 6000
+	f 10	
+	lifetime 1
+	delayTime 0.4
+	stopTime 0.5
 

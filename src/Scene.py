@@ -1078,6 +1078,14 @@ class Scene:
                     discreteLinear[key] = float (tokens[1])
                 else:   
                     data[key] = float (tokens[1])
+            elif tokens[0] in ( "stopTime" ):
+                key = tokens[0]
+                if current_section == "wave":
+                    wave[key] = float (tokens[1])
+                elif current_section == "discreteLinear":
+                    discreteLinear[key] = float (tokens[1])
+                else:   
+                    data[key] = float (tokens[1])
 
 
             elif tokens[0] in ( "length", "progressive" ):
@@ -1194,6 +1202,7 @@ class Scene:
                 wave.setAttenuation(waveData["attenuation"])   if "attenuation"    in waveData else None
                 wave.setLifePeriods(waveData["lifetime"])      if "lifetime"       in waveData else None
                 wave.delayTime = waveData["delayTime"]         if "delayTime"      in waveData else wave.delayTime
+                wave.stopTime = waveData["stopTime"]           if "stopTime"       in waveData else wave.stopTime
                 wave.setLinear()                               if "linear"         in waveData else None
                 wave.linearAngle = waveData["alpha"]           if "alpha"          in waveData else wave.linearAngle
                 wave.setPhase(waveData["phase"])               if "phase"          in waveData else None
@@ -1242,6 +1251,8 @@ class Scene:
                         wave.setLifePeriods (discreteLinear["lifetime"])
                     if "delayTime" in discreteLinear:    
                         wave.delayTime = discreteLinear["delayTime"] 
+                    if "stopTime" in discreteLinear:    
+                        wave.stopTime = discreteLinear["stopTime"] 
                     if "phase" in discreteLinear:    
                         wave.setPhase ( discreteLinear["phase"] ) 
                     if "phaser" in discreteLinear:    

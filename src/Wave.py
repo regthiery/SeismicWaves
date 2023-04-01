@@ -54,6 +54,7 @@ class Wave:
         self.isHidden = False                       # Initialise un booléen qui indique si l'onde est cachée ou non.
         self.isDrawClippedArea=False                # Initialise un booléen qui indique si la zone de clipping est dessinée ou non.
         self.delayTime = 0                          # Initialise le temps de retard de l'onde
+        self.stopTime = None
         self.deltaT = 0                             # Initialise le temps de retard de l'onde
         self.sourceWave = None                      # Initialise la source de l'onde source à "None".
         self.isDrawSourceRay = False                # Initialise un booléen qui indique si le rayon de l'onde source est dessiné ou non.
@@ -95,6 +96,7 @@ class Wave:
         print("\tdrawFocus     {}".format(self.isDrawFocus))
         print("\tfocusRadius   {}".format(self.focusRadius))
         print("\tdelayTime     {}".format(self.delayTime))
+        print("\tstopTime      {}".format(self.stopTime))
         print("\tdeltaT        {}".format(self.deltaT))
         print("\tisAttenuating {}".format(self.isAttenuating))
         print("\tattenuation   {}".format(self.attenuationFactor))
@@ -400,7 +402,7 @@ class Wave:
         A = np.ones_like (X) * self.amplitude
         
         if self.isLinear == False:
-            if t>= self.delayTime or self.isHidden :
+            if t>= self.delayTime  and (self.stopTime == None or t <= self.stopTime ):
                 D = (X-self.x0)**2 + (Y-self.y0)**2
                 D = np.sqrt(D)
                 if self.isAttenuating:
